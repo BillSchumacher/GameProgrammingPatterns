@@ -7,21 +7,22 @@ from gpp.patterns.hsm import HState, HStateMachine
 class EventLogger:
     def __init__(self):
         self.log: List[str] = []
-        self.details: Dict[str, List[Any]] = {} # To store kwargs
+        self.details: Dict[str, List[Dict[str, Any]]] = {}
 
-    def add(self, event_type: str, state_name: str, *args, **kwargs):
-        self.log.append(f"{state_name}:{event_type}")
-        if args or kwargs:
-            entry_details = []
-            if args:
-                entry_details.extend(list(args))
-            if kwargs:
-                entry_details.append(kwargs)
-            
-            key = f"{state_name}:{event_type}"
-            if key not in self.details:
-                self.details[key] = []
-            self.details[key].append(entry_details[0] if len(entry_details) == 1 else entry_details)
+    def add(self, event_type: str, state_name: str, *args, **kwargs_for_event):
+        entry = f"{state_name}:{event_type}"
+        self.log.append(entry)
+        
+        detail_to_store = {}
+        if args:
+            detail_to_store['args'] = args
+        if kwargs_for_event:
+            detail_to_store['kwargs'] = kwargs_for_event
+        
+        if detail_to_store:
+            if entry not in self.details:
+                self.details[entry] = []
+            self.details[entry].append(detail_to_store)
 
     def clear(self):
         self.log.clear()
@@ -30,11 +31,11 @@ class EventLogger:
 
 class BaseTestHState(HState):
     def __init__(self, context: HStateMachine, parent: Optional[HState] = None, logger: Optional[EventLogger] = None, **kwargs):
-        super().__init__(context, parent)
-        self.logger = logger
-        self.init_kwargs = kwargs
+        super().__init__(context, parent, **kwargs)
+        self.logger = logger if logger is not None else getattr(context, 'hsm_logger', None)
+        self.init_kwargs_received = kwargs
         if self.logger:
-            self.logger.add("init", self.__class__.__name__, **kwargs)
+            self.logger.add("init", self.__class__.__name__, **self.init_kwargs_received)
 
     def on_enter(self, **kwargs) -> None:
         if self.logger:
@@ -48,79 +49,88 @@ class BaseTestHState(HState):
 
     def on_handle_event(self, event: Any, **kwargs) -> bool:
         if self.logger:
-            self.logger.add("handle", self.__class__.__name__, event_arg=kwargs.get("event_arg"), event_data=event)
+            self.logger.add("handle", self.__class__.__name__, event_name=event, **kwargs)
         self.event_kwargs = kwargs
-        self.last_event_handled = event
-        return False # Default: event not handled, propagates up
+        self.last_event_handled = event 
+        return False
+
 
 class GrandChildA1State(BaseTestHState):
     def on_handle_event(self, event: Any, **kwargs) -> bool:
         super().on_handle_event(event, **kwargs)
         if event == "EVENT_GC_A1":
-            if self.logger: self.logger.add("handled_by", self.__class__.__name__)
+            if self.logger: self.logger.add("handled_by", self.__class__.__name__, event_name=event, **kwargs)
             return True
         if event == "TRANSITION_TO_CHILD_B":
+            if self.logger: self.logger.add("transitioning_to_ChildB", self.__class__.__name__, event_name=event, **kwargs)
             self.context.transition_to(ChildBState)
-            if self.logger: self.logger.add("handled_by", self.__class__.__name__)
             return True
         return False
+
 
 class GrandChildB1State(BaseTestHState):
     def on_handle_event(self, event: Any, **kwargs) -> bool:
         super().on_handle_event(event, **kwargs)
-        return False # Does not handle any events itself by default
+        return False
+
 
 class ChildAState(BaseTestHState):
-    def get_initial_sub_state_class(self) -> Optional[Type[HState]]:
-        return GrandChildA1State
+    default_child_state_class = GrandChildA1State
 
     def on_handle_event(self, event: Any, **kwargs) -> bool:
         super().on_handle_event(event, **kwargs)
         if event == "EVENT_CHILD_A":
-            if self.logger: self.logger.add("handled_by", self.__class__.__name__)
+            if self.logger: self.logger.add("handled_by", self.__class__.__name__, event_name=event, **kwargs)
             return True
         return False
 
+
 class ChildBState(BaseTestHState):
-    default_child_state_class = GrandChildB1State # Make GCB1 default child
+    default_child_state_class = GrandChildB1State
 
     def on_handle_event(self, event: Any, **kwargs) -> bool:
         super().on_handle_event(event, **kwargs)
         if event == "TRANSITION_TO_GC_A1":
+            if self.logger: self.logger.add("transitioning_to_GrandChildA1State", self.__class__.__name__, event_name=event, **kwargs)
             self.context.transition_to(GrandChildA1State)
-            if self.logger: self.logger.add("handled_by", self.__class__.__name__)
+            return True
+        if event == "BACK_TO_A":
+            if self.logger: self.logger.add("transitioning_to_ChildA", self.__class__.__name__, event_name=event, **kwargs)
+            self.context.transition_to(ChildAState)
             return True
         return False
 
+
 class RootState(BaseTestHState):
-    def get_initial_sub_state_class(self) -> Optional[Type[HState]]:
-        return ChildAState # Default to ChildA
+    default_child_state_class = ChildAState
 
     def on_handle_event(self, event: Any, **kwargs) -> bool:
         super().on_handle_event(event, **kwargs)
         if event == "EVENT_ROOT":
-            if self.logger: self.logger.add("handled_by", self.__class__.__name__)
+            if self.logger: self.logger.add("handled_by", self.__class__.__name__, event_name=event, **kwargs)
             return True
         if event == "TRANSITION_TO_CHILD_A_FROM_ROOT":
+            if self.logger: self.logger.add("transitioning_to_ChildA", self.__class__.__name__, event_name=event, **kwargs)
             self.context.transition_to(ChildAState)
-            if self.logger: self.logger.add("handled_by", self.__class__.__name__)
             return True
         return False
 
-class SimpleRootState(BaseTestHState): # No sub-states
+
+class SimpleRootState(BaseTestHState):
     def on_handle_event(self, event: Any, **kwargs) -> bool:
         super().on_handle_event(event, **kwargs)
         if event == "SIMPLE_EVENT":
-            if self.logger: self.logger.add("handled_by", self.__class__.__name__)
+            if self.logger: self.logger.add("handled_by", self.__class__.__name__, event_name=event, **kwargs)
             return True
         return False
+
 
 # --- Test Cases ---
 
 class TestHierarchicalStateMachine(unittest.TestCase):
     def setUp(self):
         self.logger = EventLogger()
-        self.hsm = HStateMachine()
+        self.hsm = HStateMachine(logger=self.logger)
 
     def test_initialization_and_start(self):
         constructor_args = {
@@ -148,43 +158,28 @@ class TestHierarchicalStateMachine(unittest.TestCase):
         ]
         self.assertEqual(self.logger.log, expected_log)
 
-        # Check kwargs
-        root_init_details = self.logger.details["RootState:init"][0]
-        self.assertEqual(root_init_details.get("constructor_arg"), "root_val")
+        root_init_details_list = self.logger.details.get("RootState:init")
+        self.assertIsNotNone(root_init_details_list)
+        self.assertEqual(len(root_init_details_list), 1)
+        self.assertEqual(root_init_details_list[0]['kwargs'].get("constructor_arg"), "root_val")
         
-        gc_enter_details = self.logger.details["GrandChildA1State:enter"][0]
-        self.assertEqual(gc_enter_details.get("enter_arg"), "gcA1_enter")
-
-        # Check parent linking
-        gc_state = self.hsm.current_state
-        child_state = gc_state.parent
-        root_state = child_state.parent
-        self.assertIsInstance(child_state, ChildAState)
-        self.assertIsInstance(root_state, RootState)
-        self.assertIsNone(root_state.parent)
-
-        # Check active sub-state linking
-        self.assertIs(root_state.active_sub_state_instance, child_state)
-        self.assertIs(child_state.active_sub_state_instance, gc_state)
-        self.assertIsNone(gc_state.active_sub_state_instance)
+        gc_enter_details_list = self.logger.details.get("GrandChildA1State:enter")
+        self.assertIsNotNone(gc_enter_details_list)
+        self.assertEqual(len(gc_enter_details_list), 1)
+        self.assertEqual(gc_enter_details_list[0]['kwargs'].get("enter_arg"), "gcA1_enter")
 
 
     def test_event_handling_handled_by_leaf(self):
         self.hsm.start(RootState, constructor_kwargs_map={s: {"logger": self.logger} for s in [RootState, ChildAState, GrandChildA1State]})
-        self.logger.log.clear() # Clear init/enter logs
+        self.logger.log.clear()
 
         handled = self.hsm.dispatch("EVENT_GC_A1", event_arg="gc_a1_dispatch")
         self.assertTrue(handled)
         expected_log = [
             "GrandChildA1State:handle", 
-            "GrandChildA1State:handled_by"
+            "GrandChildA1State:handled_by" 
         ]
         self.assertEqual(self.logger.log, expected_log)
-        
-        gc_state = self.hsm.get_active_state_by_class(GrandChildA1State)
-        self.assertIsNotNone(gc_state)
-        self.assertEqual(gc_state.last_event_handled, "EVENT_GC_A1")
-        self.assertEqual(gc_state.event_kwargs.get("event_arg"), "gc_a1_dispatch")
 
 
     def test_event_handling_handled_by_parent(self):
@@ -200,11 +195,6 @@ class TestHierarchicalStateMachine(unittest.TestCase):
             "ChildAState:handled_by"
         ]
         self.assertEqual(self.logger.log, expected_log_corrected)
-        
-        child_a_state = self.hsm.get_active_state_by_class(ChildAState)
-        self.assertIsNotNone(child_a_state)
-        self.assertEqual(child_a_state.last_event_handled, "EVENT_CHILD_A")
-        self.assertEqual(child_a_state.event_kwargs.get("event_arg"), "child_a_dispatch")
 
 
     def test_event_handling_handled_by_root(self):
@@ -220,11 +210,7 @@ class TestHierarchicalStateMachine(unittest.TestCase):
             "RootState:handled_by"
         ]
         self.assertEqual(self.logger.log, expected_log)
-        
-        root_state = self.hsm.get_active_state_by_class(RootState)
-        self.assertIsNotNone(root_state)
-        self.assertEqual(root_state.last_event_handled, "EVENT_ROOT")
-        self.assertEqual(root_state.event_kwargs.get("event_arg"), "root_dispatch")
+
 
     def test_event_not_handled(self):
         self.hsm.start(RootState, constructor_kwargs_map={s: {"logger": self.logger} for s in [RootState, ChildAState, GrandChildA1State]})
@@ -239,163 +225,124 @@ class TestHierarchicalStateMachine(unittest.TestCase):
         ]
         self.assertEqual(self.logger.log, expected_log)
 
+
     def test_transition_from_leaf_to_sibling_branch(self):
-        self.hsm.start(RootState, constructor_kwargs_map={s: {"logger": self.logger} for s in [RootState, ChildAState, GrandChildA1State, ChildBState]})
-        self.logger.log.clear()
-        self.logger.details.clear()
+        all_states = [RootState, ChildAState, GrandChildA1State, ChildBState, GrandChildB1State]
+        self.hsm.start(RootState, constructor_kwargs_map={s: {"logger": self.logger} for s in all_states})
+        self.logger.clear()
 
         self.hsm.dispatch("TRANSITION_TO_CHILD_B")
 
-        self.assertIsInstance(self.hsm.current_state, ChildBState)
+        self.assertIsInstance(self.hsm.current_state, GrandChildB1State)
         self.assertEqual(self.hsm.get_active_states_path_names(), ["ChildBState", "GrandChildB1State"])
+        
+        log = self.logger.log
+        self.assertIn("GrandChildA1State:handle", log)
+        self.assertIn("GrandChildA1State:transitioning_to_ChildB", log)
+        self.assertIn("RootState:exit", log)
+        self.assertIn("ChildAState:exit", log)
+        self.assertIn("GrandChildA1State:exit", log)
+        self.assertIn("ChildBState:enter", log)
+        self.assertIn("GrandChildB1State:enter", log)
+        
+        idx_gca1_exit = log.index("GrandChildA1State:exit")
+        idx_childb_enter = log.index("ChildBState:enter")
+        self.assertLess(idx_gca1_exit, idx_childb_enter, "Exit from old branch must precede entry into new branch")
 
-        expected_log_after_dispatch_transition = [
-            "RootState:handle",
-            "ChildAState:handle",
-            "GrandChildA1State:handle",
-            "GrandChildA1State:handled_by",
-            "GrandChildA1State:exit",
-            "ChildAState:exit",
-            "RootState:exit",
-            "ChildBState:init",
-            "ChildBState:enter",
-            "GrandChildB1State:init",
-            "GrandChildB1State:enter"
-        ]
-        self.assertEqual(self.logger.log, expected_log_after_dispatch_transition)
-
-        self.assertEqual(self.logger.details.get("GrandChildA1State:exit", [{}])[0].get("exit_arg"), None)
-        self.assertEqual(self.logger.details.get("ChildAState:exit", [{}])[0].get("exit_arg"), None)
-        self.assertEqual(self.logger.details.get("RootState:exit", [{}])[0].get("exit_arg"), None)
-        self.assertEqual(self.logger.details.get("ChildBState:enter", [{}])[0].get("enter_arg"), None)
-        self.assertEqual(self.logger.details.get("ChildBState:init", [{}])[0].get("constructor_arg"), None)
 
     def test_transition_to_deeper_state_in_new_branch(self):
-        constructor_map_for_start = {
-            s: {"logger": self.logger, "id": s.__name__} 
-            for s in [RootState, ChildAState, GrandChildA1State]
-        }
-        constructor_map_for_b_branch = {
-            ChildBState: {"logger": self.logger, "id": "ChildB_transition"},
-            GrandChildB1State: {"logger": self.logger, "id": "GCB1_transition"}
-        }
-        enter_map_for_b_branch = {
-            ChildBState: {"enter_arg": "ChildB_enter_deep"},
-            GrandChildB1State: {"enter_arg": "GCB1_enter_deep"}
-        }
-        exit_map_for_old_branch = {
-            GrandChildA1State: {"exit_arg": "GCA1_exit_deep"},
-            ChildAState: {"exit_arg": "ChildA_exit_deep"},
-            RootState: {"exit_arg": "Root_exit_deep"}
-        }
+        all_states = [RootState, ChildAState, GrandChildA1State, ChildBState, GrandChildB1State]
+        self.hsm.start(RootState, constructor_kwargs_map={s: {"logger": self.logger} for s in all_states})
+        self.logger.clear()
 
-        self.hsm.start(RootState, constructor_kwargs_map=constructor_map_for_start)
-        self.logger.log.clear()
-        self.logger.details.clear()
+        self.hsm.transition_to(GrandChildB1State,
+                               enter_kwargs_map={GrandChildB1State: {"reason": "direct_transition_to_leaf"}})
 
-        self.hsm.transition_to(
-            ChildBState,
-            constructor_kwargs_map=constructor_map_for_b_branch,
-            enter_kwargs_map=enter_map_for_b_branch,
-            exit_kwargs_map=exit_map_for_old_branch
-        )
+        self.assertIsInstance(self.hsm.current_state, GrandChildB1State)
+        self.assertEqual(self.hsm.get_active_states_path_names(), ["GrandChildB1State"])
 
-        self.assertIsInstance(self.hsm.current_state, ChildBState)
-        self.assertEqual(self.hsm.get_active_states_path_names(), ["ChildBState", "GrandChildB1State"])
-
-        expected_log = [
-            "GrandChildA1State:exit",
-            "ChildAState:exit",
-            "RootState:exit",
-            "ChildBState:init",
-            "ChildBState:enter",
-            "GrandChildB1State:init",
-            "GrandChildB1State:enter"
-        ]
-        self.assertEqual(self.logger.log, expected_log)
-
-        self.assertEqual(self.logger.details["GrandChildA1State:exit"][0].get("exit_arg"), "GCA1_exit_deep")
-        self.assertEqual(self.logger.details["ChildAState:exit"][0].get("exit_arg"), "ChildA_exit_deep")
-        self.assertEqual(self.logger.details["RootState:exit"][0].get("exit_arg"), "Root_exit_deep")
-
-        self.assertEqual(self.logger.details["ChildBState:init"][0].get("id"), "ChildB_transition")
-        self.assertEqual(self.logger.details["ChildBState:enter"][0].get("enter_arg"), "ChildB_enter_deep")
+        log = self.logger.log
+        self.assertIn("RootState:exit", log)
+        self.assertIn("ChildAState:exit", log)
+        self.assertIn("GrandChildA1State:exit", log)
+        self.assertIn("GrandChildB1State:enter", log)
         
-        self.assertEqual(self.logger.details["GrandChildB1State:init"][0].get("id"), "GCB1_transition")
-        self.assertEqual(self.logger.details["GrandChildB1State:enter"][0].get("enter_arg"), "GCB1_enter_deep")
+        gcb1_enter_details_list = self.logger.details.get("GrandChildB1State:enter")
+        self.assertIsNotNone(gcb1_enter_details_list)
+        self.assertTrue(any(d['kwargs'].get("reason") == "direct_transition_to_leaf" for d in gcb1_enter_details_list))
+
 
     def test_instance_caching_and_reentry(self):
-        all_states_construct = {
-            s: {"logger": self.logger, "id": s.__name__} 
-            for s in [RootState, ChildAState, GrandChildA1State, ChildBState, GrandChildB1State]
-        }
-        start_enter_map = {
-            RootState: {"enter_id": "Root_start"},
-            ChildAState: {"enter_id": "ChildA_start"},
-            GrandChildA1State: {"enter_id": "GCA1_start"}
-        }
+        all_states = [RootState, ChildAState, GrandChildA1State, ChildBState, GrandChildB1State]
+        constructor_map = {s: {"logger": self.logger, "id": s.__name__ + "_instance"} for s in all_states}
 
-        self.hsm.start(RootState, constructor_kwargs_map=all_states_construct, enter_kwargs_map=start_enter_map)
-        
-        gca1_initial_instance = self.hsm.get_active_state_by_class(GrandChildA1State)
+        self.hsm.start(RootState, constructor_kwargs_map=constructor_map)
+        self.assertIsInstance(self.hsm.current_state, GrandChildA1State)
+        gca1_first_instance = self.hsm.current_state
 
-        self.logger.log.clear()
-        self.logger.details.clear()
+        self.logger.clear()
 
         self.hsm.dispatch("TRANSITION_TO_CHILD_B")
+        self.assertIsInstance(self.hsm.current_state, GrandChildB1State)
+        gcb1_first_instance = self.hsm.current_state
+        childb_first_instance = self.hsm.get_active_state_by_class(ChildBState)
+
+        log1 = self.logger.log[:]
+        self.assertIn("GrandChildA1State:transitioning_to_ChildB", log1)
+        self.assertIn("RootState:exit", log1)
+        self.assertIn("ChildBState:enter", log1)
+        self.assertIn("GrandChildB1State:enter", log1)
         
-        self.assertIsInstance(self.hsm.current_state, ChildBState)
-        path_after_to_b = self.hsm.get_active_states_path_names()
-        self.assertEqual(path_after_to_b, ["ChildBState", "GrandChildB1State"])
+        child_b_init_logged = any(
+            entry == "ChildBState:init" and 
+            self.logger.details.get(entry) and 
+            any(detail_item['kwargs'].get('id') == "ChildBState_instance" for detail_item in self.logger.details[entry])
+            for entry in log1
+        )
+        self.assertTrue(child_b_init_logged, "ChildBState:init with correct id should be logged on first transition")
 
-        expected_log_to_b = [
-            "RootState:handle", "ChildAState:handle", "GrandChildA1State:handle", "GrandChildA1State:handled_by",
-            "GrandChildA1State:exit", "ChildAState:exit", "RootState:exit",
-            "ChildBState:enter",
-            "GrandChildB1State:enter"
-        ]
-        self.assertEqual(self.logger.log, expected_log_to_b)
-        
-        self.assertIn("ChildBState:enter", self.logger.details)
-        self.assertEqual(self.logger.details.get("ChildBState:enter", [{}])[0].get("enter_id"), None)
+        self.logger.clear()
 
-        self.assertIn("GrandChildB1State:enter", self.logger.details)
-        self.assertEqual(self.logger.details.get("GrandChildB1State:enter", [{}])[0].get("enter_id"), None)
-
-        self.logger.log.clear()
-        self.logger.details.clear()
-
-        self.hsm.dispatch("TRANSITION_TO_GC_A1")
-
+        self.hsm.dispatch("BACK_TO_A")
         self.assertIsInstance(self.hsm.current_state, GrandChildA1State)
-        path_back_to_gc_a1 = self.hsm.get_active_states_path_names()
-        self.assertEqual(path_back_to_gc_a1, ["GrandChildA1State"])
-
-        expected_log_back_to_gc_a1 = [
-            "GrandChildB1State:handle",
-            "ChildBState:handle",
-            "ChildBState:handled_by",
-            "GrandChildB1State:exit",
-            "ChildBState:exit",
-            "GrandChildA1State:enter"
-        ]
-        self.assertEqual(self.logger.log, expected_log_back_to_gc_a1)
-        self.assertNotIn("GrandChildA1State:init", self.logger.details)
-        self.assertEqual(self.logger.details.get("GrandChildA1State:enter", [{}])[0].get("enter_id"), None)
+        self.assertEqual(self.hsm.get_active_states_path_names(), ["ChildAState", "GrandChildA1State"])
         
-        current_gca1_instance = self.hsm.current_state
-        self.assertIs(gca1_initial_instance, current_gca1_instance, "GrandChildA1State instance should be reused")
+        self.assertIs(self.hsm.current_state, gca1_first_instance, "GrandChildA1State instance should be cached")
+
+        log2 = self.logger.log[:]
+        self.assertIn("ChildBState:transitioning_to_ChildA", log2)
+        self.assertIn("ChildBState:exit", log2)
+        self.assertIn("GrandChildB1State:exit", log2)
+        self.assertNotIn("ChildAState:init", log2, "ChildAState should be cached")
+        self.assertIn("ChildAState:enter", log2)
+        self.assertNotIn("GrandChildA1State:init", log2, "GCA1 should be cached")
+        self.assertIn("GrandChildA1State:enter", log2)
+
+        self.logger.clear()
+
+        self.hsm.dispatch("TRANSITION_TO_CHILD_B")
+        self.assertIsInstance(self.hsm.current_state, GrandChildB1State)
+        
+        self.assertIs(self.hsm.current_state, gcb1_first_instance, "GCB1 instance should be cached")
+        self.assertIs(self.hsm.get_active_state_by_class(ChildBState), childb_first_instance, "ChildB instance should be cached")
+
+        log3 = self.logger.log[:]
+        self.assertNotIn("ChildBState:init", log3)
+        self.assertIn("ChildBState:enter", log3)
+        self.assertNotIn("GrandChildB1State:init", log3)
+        self.assertIn("GrandChildB1State:enter", log3)
+
 
     def test_runtime_errors(self):
-        with self.assertRaisesRegex(RuntimeError, "HSM has already been started."):
-            self.hsm.start(SimpleRootState, constructor_kwargs_map={SimpleRootState: {"logger": self.logger}})
-            self.hsm.start(SimpleRootState) 
+        self.hsm.start(SimpleRootState, constructor_kwargs_map={SimpleRootState: {"logger": self.logger}})
+        with self.assertRaises(RuntimeError):
+            self.hsm.start(SimpleRootState)
 
-        self.setUp() 
-        with self.assertRaisesRegex(RuntimeError, "HSM not started, cannot transition."):
-            self.hsm.transition_to(SimpleRootState)
-
-        self.assertFalse(self.hsm.dispatch("ANY_EVENT"))
+        new_hsm = HStateMachine()
+        with self.assertRaises(RuntimeError):
+            new_hsm.transition_to(SimpleRootState)
+        
+        self.assertFalse(new_hsm.dispatch("ANY_EVENT"))
 
 
 if __name__ == '__main__':

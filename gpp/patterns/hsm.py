@@ -107,6 +107,7 @@ class HStateMachine:
         self._instance_cache: Dict[Type[HState], HState] = {}
         self._is_transitioning: bool = False
         self.hsm_logger = logger # Stored, can be used by HSM or as a default for states if needed
+        self._initial_constructor_kwargs_map: Optional[Dict[Type[HState], Dict[str, Any]]] = None # Added to store map from start
 
     @property
     def current_state(self) -> Optional[HState]:
@@ -145,6 +146,7 @@ class HStateMachine:
             raise RuntimeError("Cannot start HSM during an ongoing transition.")
 
         self._is_transitioning = True
+        self._initial_constructor_kwargs_map = constructor_kwargs_map # Store the map
         _constructor_kwargs_map = constructor_kwargs_map or {}
         _enter_kwargs_map = enter_kwargs_map or {}
 
@@ -188,7 +190,11 @@ class HStateMachine:
             raise RuntimeError("HSM not started, cannot transition.")
 
         self._is_transitioning = True
-        _constructor_kwargs_map = constructor_kwargs_map or {}
+        
+        # Prioritize: explicit map -> initial map from start -> empty map
+        _constructor_kwargs_map = constructor_kwargs_map if constructor_kwargs_map is not None \
+                                  else self._initial_constructor_kwargs_map if self._initial_constructor_kwargs_map is not None \
+                                  else {}
         _enter_kwargs_map = enter_kwargs_map or {}
         _exit_kwargs_map = exit_kwargs_map or {}
 
