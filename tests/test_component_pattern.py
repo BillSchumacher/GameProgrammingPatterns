@@ -2,6 +2,7 @@
 Unit tests for the Component pattern.
 """
 import unittest
+from unittest import mock
 from gpp.patterns.component import Entity, Component, PositionComponent, HealthComponent, InputComponent
 
 class TestComponentPattern(unittest.TestCase):
@@ -20,7 +21,6 @@ class TestComponentPattern(unittest.TestCase):
         self.assertIsInstance(pos_component, PositionComponent)
         self.assertEqual(pos_component.x, 10)
         self.assertEqual(pos_component.y, 20)
-        self.assertIs(pos_component.entity, entity)
 
         retrieved_pos = entity.get_component(PositionComponent)
         self.assertIs(retrieved_pos, pos_component)
@@ -28,7 +28,6 @@ class TestComponentPattern(unittest.TestCase):
         health_component = entity.add_component(HealthComponent(100))
         self.assertIsInstance(health_component, HealthComponent)
         self.assertEqual(health_component.health, 100)
-        self.assertIs(health_component.entity, entity)
 
         retrieved_health = entity.get_component(HealthComponent)
         self.assertIs(retrieved_health, health_component)
@@ -63,7 +62,6 @@ class TestComponentPattern(unittest.TestCase):
         self.assertTrue(removed)
         self.assertFalse(entity.has_component(PositionComponent))
         self.assertIsNone(entity.get_component(PositionComponent))
-        self.assertIsNone(pos_component.entity) # Check if entity reference is cleared
 
         # Test removing a non-existent component
         removed_again = entity.remove_component(PositionComponent)
@@ -86,34 +84,22 @@ class TestComponentPattern(unittest.TestCase):
         self.assertIsNotNone(pos_comp)
 
         # Simulate input that moves the player
-        input_comp.process_input("move_right")
+        input_comp.process_input(player, "move_right")
         self.assertEqual(pos_comp.x, 1)
         self.assertEqual(pos_comp.y, 0)
         self.assertEqual(input_comp.last_command, "move_right")
 
-        input_comp.process_input("move_left")
-        input_comp.process_input("move_left") # Move left twice
+        input_comp.process_input(player, "move_left")
+        input_comp.process_input(player, "move_left") # Move left twice
         self.assertEqual(pos_comp.x, -1) # 1 (from right) - 1 - 1 = -1
         self.assertEqual(pos_comp.y, 0)
         self.assertEqual(input_comp.last_command, "move_left")
-
-    def test_component_entity_reference(self):
-        """Test that components correctly reference their entity."""
-        entity = Entity()
-        pos_comp = PositionComponent()
-        self.assertIsNone(pos_comp.entity)
-        entity.add_component(pos_comp)
-        self.assertIs(pos_comp.entity, entity)
-
-        health_comp = entity.add_component(HealthComponent())
-        self.assertIs(health_comp.entity, entity)
 
     def test_entity_update_components(self):
         """Test that the entity can update all its components."""
         entity = Entity()
         input_comp = entity.add_component(InputComponent())
-        # Mock the update method of InputComponent to check if it's called
-        input_comp.update = unittest.mock.Mock()
+        input_comp.update = mock.Mock()
 
         # Add a component without an update method
         class NoUpdateComponent(Component):
@@ -124,15 +110,14 @@ class TestComponentPattern(unittest.TestCase):
         class CustomUpdateComponent(Component):
             def __init__(self):
                 super().__init__()
-                self.updated = False
-            def update(self):
-                self.updated = True
+                self.updated_with_entity = None
+            def update(self, entity_arg):
+                self.updated_with_entity = entity_arg
         custom_update_comp = entity.add_component(CustomUpdateComponent())
 
-
         entity.update_components()
-        input_comp.update.assert_called_once()
-        self.assertTrue(custom_update_comp.updated)
+        input_comp.update.assert_called_once_with(entity)
+        self.assertIs(custom_update_comp.updated_with_entity, entity)
 
     def test_concrete_component_functionality(self):
         """Test specific functionalities of concrete components."""
@@ -155,7 +140,8 @@ class TestComponentPattern(unittest.TestCase):
 
         # InputComponent (basic string representation)
         input_c = InputComponent()
-        input_c.process_input("jump")
+        dummy_entity = Entity()
+        input_c.process_input(dummy_entity, "jump")
         self.assertEqual(str(input_c), "InputComponent(last_command='jump')")
 
 if __name__ == '__main__':
