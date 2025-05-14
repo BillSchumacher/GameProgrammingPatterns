@@ -5,6 +5,8 @@ from .prototype import Prototype
 from .singleton import Singleton
 from .csm import CSM, StateMachineInterface
 from .double_buffer import Buffer, DoubleBuffer
+from .update_method import UpdateMethodManager, Entity
+from .bytecode import Instruction, VirtualMachine
 
 __all__ = [
     "Command",
@@ -20,4 +22,8 @@ __all__ = [
     "StateMachineInterface",
     "Buffer",
     "DoubleBuffer",
+    "UpdateMethodManager",
+    "Entity",
+    "Instruction",
+    "VirtualMachine"
 ]
