@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "gpp"
+version = "0.1.0"
+description = "A Python package for Game Programming Patterns."
+authors = ["Your Name <youremail@example.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/yourusername/gpp"
+repository = "https://github.com/yourusername/gpp"
+keywords = ["game", "programming", "patterns"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.4.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
