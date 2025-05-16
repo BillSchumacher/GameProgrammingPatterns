@@ -8,17 +8,17 @@ This collection is from Game Programming Patterns by Robert Nystrom.
 The code however may vary from the authors' original implementation. The book is a very good read, highly recommended.
 
 ## Installation
-To install the `gpp` package, you can use pip:
+To install the `gamepp` package, you can use pip:
 
 ```
-pip install gpp
+pip install gamepp
 ```
 
 ## Usage
-Here are some examples of how to use the `gpp` package in your game development projects:
+Here are some examples of how to use the `gamepp` package in your game development projects:
 
 ```python
-from gpp import SomeClass
+from gamepp import SomeClass
 
 # Example usage of SomeClass
 instance = SomeClass()
