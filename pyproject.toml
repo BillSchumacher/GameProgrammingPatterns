@@ -1,12 +1,41 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gpp"
+version = "0.1.0"
+authors = [
+  { name="Bill Schumacher", email="34168009+BillSchumacher@users.noreply.github.com" },
+]
+description = "Various game programming patterns."
+readme = "README.md"
+license='MIT'
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3 :: Only",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+]
+
+[project.urls]
+"Homepage" = "https://github.com/BillSchumacher/GameProgrammingPatterns"
+"Bug Tracker" = "https://github.com/BillSchumacher/GameProgrammingPatterns/issues"
+
 [tool.poetry]
 name = "gpp"
 version = "0.1.0"
 description = "A Python package for Game Programming Patterns."
-authors = ["Your Name <youremail@example.com>"]
+authors = ["Bill Schumacher <34168009+BillSchumacher@users.noreply.github.com>"]
 license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/yourusername/gpp"
-repository = "https://github.com/yourusername/gpp"
+homepage = "https://github.com/BillSchumacher/GameProgrammingPatterns"
+repository = "https://github.com/BillSchumacher/GameProgrammingPatterns"
 keywords = ["game", "programming", "patterns"]
 
 [tool.poetry.dependencies]
