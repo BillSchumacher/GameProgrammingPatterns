@@ -7,7 +7,7 @@ from .csm import CSM, StateMachineInterface
 from .double_buffer import Buffer, DoubleBuffer
 from .update_method import UpdateMethodManager, Entity
 from .bytecode import Instruction, VirtualMachine
-from .service_locator import Service, ConcreteServiceA, ConcreteServiceB, ServiceLocator, NullService, get_service, register_service
+from .service_locator import ServiceLocator, NullService, get_service, register_service
 
 __all__ = [
     "Command",
@@ -27,9 +27,6 @@ __all__ = [
     "Entity",
     "Instruction",
     "VirtualMachine",
-    "Service",
-    "ConcreteServiceA",
-    "ConcreteServiceB",
     "ServiceLocator",
     "NullService",
     "get_service",
