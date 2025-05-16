@@ -1,7 +1,7 @@
-# Game Programming Patterns (gpp)
+# Game Programming Patterns (gamepp)
 
 ## Overview
-The `gpp` package provides a collection of design patterns and best practices for game programming. It aims to help developers implement common patterns in their games, improving code organization, maintainability, and performance.
+The `gamepp` package provides a collection of design patterns and best practices for game programming. It aims to help developers implement common patterns in their games, improving code organization, maintainability, and performance.
 
 This collection is from Game Programming Patterns by Robert Nystrom. 
 
