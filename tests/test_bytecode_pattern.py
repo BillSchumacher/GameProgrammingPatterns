@@ -2,7 +2,7 @@
 Unit tests for the Bytecode pattern.
 """
 import unittest
-from gpp.patterns.bytecode import Instruction, VirtualMachine, Lexer, Parser, TokenType, Token
+from gamepp.patterns.bytecode import Instruction, VirtualMachine, Lexer, Parser, TokenType, Token
 
 class TestBytecodePattern(unittest.TestCase):
     """Tests the Bytecode pattern implementation."""

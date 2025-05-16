@@ -2,7 +2,7 @@ import unittest
 import time
 from unittest.mock import MagicMock
 
-from gpp.patterns.game_loop import GameLoop
+from gamepp.patterns.game_loop import GameLoop
 
 class TestGameLoop(unittest.TestCase):
 

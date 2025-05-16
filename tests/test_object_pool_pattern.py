@@ -4,7 +4,7 @@ Tests for the Object Pool pattern.
 import unittest
 from typing import Optional
 
-from gpp.patterns.object_pool import PooledObject, ObjectPool
+from gamepp.patterns.object_pool import PooledObject, ObjectPool
 
 
 class MyUniqueResource(PooledObject):

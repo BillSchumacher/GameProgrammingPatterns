@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from gpp.common.game_object import GameObject
+from gamepp.common.game_object import GameObject
 
 
 class Command(ABC):

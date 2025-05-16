@@ -2,7 +2,7 @@
 Unit tests for the Type Object pattern.
 """
 import unittest
-from gpp.patterns.type_object import TypeObject, TypedObject
+from gamepp.patterns.type_object import TypeObject, TypedObject
 
 class TestTypeObjectPattern(unittest.TestCase):
     """Tests the Type Object pattern implementation."""

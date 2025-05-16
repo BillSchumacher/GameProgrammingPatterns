@@ -3,7 +3,7 @@ Unit tests for the Component pattern.
 """
 import unittest
 from unittest import mock
-from gpp.patterns.component import Entity, Component, PositionComponent, HealthComponent, InputComponent
+from gamepp.patterns.component import Entity, Component, PositionComponent, HealthComponent, InputComponent
 
 class TestComponentPattern(unittest.TestCase):
     """Tests the Component pattern implementation."""

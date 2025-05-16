@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import MagicMock
 
-from gpp.patterns.update_method import UpdateMethodManager, Entity
-from gpp.patterns.game_loop import GameLoop # For integration example/test
+from gamepp.patterns.update_method import UpdateMethodManager, Entity
+from gamepp.patterns.game_loop import GameLoop # For integration example/test
 
 
 class ConcreteEntity:

@@ -1,6 +1,6 @@
 import unittest
-from gpp.patterns.command import Command, CommandManager
-from gpp.common.game_object import GameObject
+from gamepp.patterns.command import Command, CommandManager
+from gamepp.common.game_object import GameObject
 
 
 # A concrete command for testing

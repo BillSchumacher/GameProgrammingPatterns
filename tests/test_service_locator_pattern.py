@@ -1,5 +1,5 @@
 import unittest
-from gpp.patterns.service_locator import (
+from gamepp.patterns.service_locator import (
     ServiceLocator,
     NullService,
     get_service,

@@ -1,5 +1,5 @@
 import unittest
-from gpp.patterns.observer import Subject, ObserverMixin, LinkedSubject
+from gamepp.patterns.observer import Subject, ObserverMixin, LinkedSubject
 from typing import Any
 
 # --- Concrete Subject Example ---

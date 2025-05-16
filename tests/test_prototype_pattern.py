@@ -1,6 +1,6 @@
 import unittest
 import copy
-from gpp.patterns.prototype import Prototype
+from gamepp.patterns.prototype import Prototype
 
 
 class TestConcretePrototype(Prototype):

@@ -3,7 +3,7 @@
 Tests for the Spatial Partition pattern.
 """
 import unittest
-from gpp.patterns.spatial_partition import SpatialObject, GridPartition
+from gamepp.patterns.spatial_partition import SpatialObject, GridPartition
 
 class TestSpatialPartition(unittest.TestCase):
 

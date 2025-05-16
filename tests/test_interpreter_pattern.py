@@ -1,5 +1,5 @@
 import unittest
-from gpp.patterns.interpreter import (
+from gamepp.patterns.interpreter import (
     NumberExpression, AddExpression, SubtractExpression, 
     MultiplyExpression, DivideExpression
 )

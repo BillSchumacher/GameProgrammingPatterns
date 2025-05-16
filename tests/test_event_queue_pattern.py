@@ -1,6 +1,6 @@
 \
 import unittest
-from gpp.patterns.event_queue import Event, EventQueue, global_event_queue
+from gamepp.patterns.event_queue import Event, EventQueue, global_event_queue
 
 class TestEvent(unittest.TestCase):
     def test_event_creation_and_repr(self):

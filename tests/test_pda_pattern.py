@@ -1,5 +1,5 @@
 import unittest
-from gpp.patterns.pda import PushdownAutomata, PDAState
+from gamepp.patterns.pda import PushdownAutomata, PDAState
 from typing import Any, List
 
 class MockState(PDAState):

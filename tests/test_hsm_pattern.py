@@ -1,6 +1,6 @@
 import unittest
 from typing import Any, Type, Optional, Dict, List
-from gpp.patterns.hsm import HState, HStateMachine
+from gamepp.patterns.hsm import HState, HStateMachine
 
 # --- Test States ---
 

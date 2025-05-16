@@ -1,5 +1,5 @@
 import unittest
-from gpp.patterns.singleton import Singleton
+from gamepp.patterns.singleton import Singleton
 
 
 class DatabaseConnection(Singleton):

@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "gpp"
+name = "gamepp"
 version = "0.1.0"
 authors = [
   { name="Bill Schumacher", email="34168009+BillSchumacher@users.noreply.github.com" },
@@ -28,7 +28,7 @@ dependencies = [
 "Bug Tracker" = "https://github.com/BillSchumacher/GameProgrammingPatterns/issues"
 
 [tool.poetry]
-name = "gpp"
+name = "gamepp"
 version = "0.1.0"
 description = "A Python package for Game Programming Patterns."
 authors = ["Bill Schumacher <34168009+BillSchumacher@users.noreply.github.com>"]
@@ -39,7 +39,7 @@ repository = "https://github.com/BillSchumacher/GameProgrammingPatterns"
 keywords = ["game", "programming", "patterns"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.10"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.4.0"

@@ -1,7 +1,7 @@
 \
 # filepath: c:\\Users\\willi\\GameProgrammingPatterns\\tests\\test_data_locality_pattern.py
 import unittest
-from gpp.patterns.data_locality import ParticleSystem
+from gamepp.patterns.data_locality import ParticleSystem
 
 class TestDataLocalityPattern(unittest.TestCase):
 

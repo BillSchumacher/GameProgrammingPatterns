@@ -1,5 +1,5 @@
 import unittest
-from gpp.patterns.csm import CSM, StateMachineInterface
+from gamepp.patterns.csm import CSM, StateMachineInterface
 from typing import Any
 
 class MockStateMachine(StateMachineInterface):

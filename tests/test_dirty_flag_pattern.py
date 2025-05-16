@@ -1,6 +1,6 @@
 \
 import unittest
-from gpp.patterns.dirty_flag import GameObject
+from gamepp.patterns.dirty_flag import GameObject
 
 class TestDirtyFlagPattern(unittest.TestCase):
 

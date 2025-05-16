@@ -1,5 +1,5 @@
 import unittest
-from gpp.patterns.flyweight import FlyweightFactory
+from gamepp.patterns.flyweight import FlyweightFactory
 
 
 class TestFlyweightPattern(unittest.TestCase):

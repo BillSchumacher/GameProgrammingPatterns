@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, call
 from typing import Any
-from gpp.patterns.fsm import State, StateMachine
+from gamepp.patterns.fsm import State, StateMachine
 
 
 class IdleState(State):

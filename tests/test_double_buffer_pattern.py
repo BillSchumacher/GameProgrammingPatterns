@@ -1,5 +1,5 @@
 import unittest
-from gpp.patterns.double_buffer import Buffer, DoubleBuffer
+from gamepp.patterns.double_buffer import Buffer, DoubleBuffer
 
 class TestBuffer(unittest.TestCase):
     def test_buffer_creation(self):
