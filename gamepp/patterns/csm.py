@@ -1,25 +1,30 @@
-\
 from typing import List, Any
+
 
 class StateMachineInterface:
     """
     A simple interface for a state machine that can handle input.
     """
+
     def handle_input(self, input_data: Any) -> None:
         raise NotImplementedError
+
 
 class CSM:
     """
     Concurrent State Machine (CSM)
     Manages a collection of state machines and passes input to all of them.
     """
+
     def __init__(self):
         self._state_machines: List[StateMachineInterface] = []
 
     def add_state_machine(self, sm: StateMachineInterface) -> None:
         """Adds a state machine to the CSM."""
-        if not hasattr(sm, 'handle_input') or not callable(sm.handle_input):
-            raise ValueError("State machine must have a callable 'handle_input' method.")
+        if not hasattr(sm, "handle_input") or not callable(sm.handle_input):
+            raise ValueError(
+                "State machine must have a callable 'handle_input' method."
+            )
         if sm not in self._state_machines:
             self._state_machines.append(sm)
 

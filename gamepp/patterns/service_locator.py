@@ -17,14 +17,17 @@ class ServiceLocator:
         # Helper method for testing to reset state
         cls._services = {}
 
+
 # Optional: A Null Service for cases where a service might be optional
 class NullService:  # Removed inheritance from Service
     def execute(self):
         return "Executing NullService (default)"
 
+
 # Global access point for convenience, though direct use of ServiceLocator is also fine
 def get_service(name: str) -> object:  # Changed Service to object
     return ServiceLocator.get_service(name)
+
 
 def register_service(name: str, service: object):  # Changed Service to object
     ServiceLocator.register_service(name, service)

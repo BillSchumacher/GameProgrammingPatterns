@@ -7,8 +7,10 @@ without a fixed set of hardcoded classes. It involves two main components:
 - TypedObject: Represents an instance of a type and stores instance-specific
              data, along with a reference to its TypeObject.
 """
+
 import json
 from typing import Optional, Dict
+
 
 class TypeObject:
     """
@@ -16,7 +18,14 @@ class TypeObject:
     Stores data and behavior shared by all instances of this type.
     Supports inheritance from a parent TypeObject using copy-down delegation.
     """
-    def __init__(self, name: str, health: int = 0, attack: Optional[str] = None, parent: Optional["TypeObject"] = None):
+
+    def __init__(
+        self,
+        name: str,
+        health: int = 0,
+        attack: Optional[str] = None,
+        parent: Optional["TypeObject"] = None,
+    ):
         self.name = name
 
         # Initialize with defaults or values from parent (copy-down)
@@ -64,11 +73,13 @@ class TypeObject:
         """
         return TypedObject(self, instance_attribute)
 
+
 class TypedObject:
     """
     Represents an instance of a specific type (defined by a TypeObject).
     Stores instance-specific data and a reference to its TypeObject.
     """
+
     def __init__(self, type_obj: TypeObject, instance_attribute: str):
         self._type_object = type_obj
         self.instance_attribute = instance_attribute
@@ -93,10 +104,14 @@ class TypedObject:
         return self._type_object.get_shared_behavior()
 
     def __str__(self) -> str:
-        type_attack_description = self.type.attack if self.type.attack is not None else "Not specified"
-        return (f"Instance of '{self.type.name}' "
-                f"(Instance Data: '{self.instance_attribute}', "
-                f"Type Health: {self.type.health}, Type Attack: '{type_attack_description}')")
+        type_attack_description = (
+            self.type.attack if self.type.attack is not None else "Not specified"
+        )
+        return (
+            f"Instance of '{self.type.name}' "
+            f"(Instance Data: '{self.instance_attribute}', "
+            f"Type Health: {self.type.health}, Type Attack: '{type_attack_description}')"
+        )
 
 
 def load_type_objects_from_data(breeds_data: Dict[str, Dict]) -> Dict[str, TypeObject]:
@@ -106,21 +121,21 @@ def load_type_objects_from_data(breeds_data: Dict[str, Dict]) -> Dict[str, TypeO
     It makes multiple passes to resolve dependencies.
     """
     type_objects_map: Dict[str, TypeObject] = {}
-    
+
     # Use a list of tuples (name, config) to allow safe removal during iteration
     # and to handle processing order for dependencies.
     pending_configs = list(breeds_data.items())
-    
+
     # Safeguard against infinite loops with malformed data (e.g. circular dependencies)
-    max_passes = len(pending_configs) + 1 
+    max_passes = len(pending_configs) + 1
     passes_count = 0
-    
+
     while pending_configs and passes_count < max_passes:
         processed_in_this_pass = []
         for name, config in pending_configs:
             parent_name = config.get("parent")
             parent_obj: Optional[TypeObject] = None
-            
+
             can_process_now = True
             if parent_name:
                 if parent_name in type_objects_map:
@@ -128,15 +143,17 @@ def load_type_objects_from_data(breeds_data: Dict[str, Dict]) -> Dict[str, TypeO
                 else:
                     # Parent not yet processed, defer this item for a later pass
                     can_process_now = False
-            
+
             if can_process_now:
                 health = config.get("health", 0)  # Default to 0 (inherit/default)
-                attack = config.get("attack")     # Default to None (inherit/default)
-                
-                type_obj = TypeObject(name=name, health=health, attack=attack, parent=parent_obj)
+                attack = config.get("attack")  # Default to None (inherit/default)
+
+                type_obj = TypeObject(
+                    name=name, health=health, attack=attack, parent=parent_obj
+                )
                 type_objects_map[name] = type_obj
                 processed_in_this_pass.append((name, config))
-        
+
         if not processed_in_this_pass and pending_configs:
             # No progress was made in this pass, but items remain.
             # This indicates a cycle or a missing parent definition.
@@ -149,8 +166,8 @@ def load_type_objects_from_data(breeds_data: Dict[str, Dict]) -> Dict[str, TypeO
         # Remove successfully processed items from the pending list
         for item in processed_in_this_pass:
             if item in pending_configs:
-                 pending_configs.remove(item)
-        
+                pending_configs.remove(item)
+
         passes_count += 1
 
     if pending_configs:
@@ -159,7 +176,7 @@ def load_type_objects_from_data(breeds_data: Dict[str, Dict]) -> Dict[str, TypeO
             f"Failed to process all breed definitions after {passes_count} passes. "
             f"Remaining: {remaining_names}. This might indicate an unresolvable circular dependency."
         )
-            
+
     return type_objects_map
 
 
@@ -169,4 +186,3 @@ def load_types_from_json_string(json_string: str) -> Dict[str, TypeObject]:
     """
     data = json.loads(json_string)
     return load_type_objects_from_data(data)
-

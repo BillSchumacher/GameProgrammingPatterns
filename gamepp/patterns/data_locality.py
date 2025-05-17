@@ -1,4 +1,3 @@
-\
 # gpp/patterns/data_locality.py
 """
 Data Locality Pattern
@@ -23,11 +22,13 @@ as opposed to "Array of Structures" (AoS).
 This example demonstrates a ParticleSystem using SoA.
 """
 
+
 class ParticleSystem:
     """
     Manages particles using a Structure of Arrays (SoA) approach
     to improve data locality when updating particles.
     """
+
     def __init__(self, max_particles: int):
         if not isinstance(max_particles, int) or max_particles <= 0:
             raise ValueError("max_particles must be a positive integer.")
@@ -42,7 +43,9 @@ class ParticleSystem:
         self.velocities_y: list[float] = [0.0] * max_particles
         self.active: list[bool] = [False] * max_particles
 
-    def add_particle(self, pos_x: float, pos_y: float, vel_x: float, vel_y: float) -> int | None:
+    def add_particle(
+        self, pos_x: float, pos_y: float, vel_x: float, vel_y: float
+    ) -> int | None:
         """
         Adds a particle to the system.
         Tries to reuse an inactive slot first.
@@ -52,12 +55,14 @@ class ParticleSystem:
             if not self.active[i]:
                 self._initialize_particle(i, pos_x, pos_y, vel_x, vel_y)
                 return i
-        
+
         # If no inactive slot is found and system is full
         # print("Particle system full. Cannot add new particle.") # Optional: logging
         return None
 
-    def _initialize_particle(self, idx: int, pos_x: float, pos_y: float, vel_x: float, vel_y: float):
+    def _initialize_particle(
+        self, idx: int, pos_x: float, pos_y: float, vel_x: float, vel_y: float
+    ):
         """Helper to set particle data and mark as active."""
         self.positions_x[idx] = pos_x
         self.positions_y[idx] = pos_y
@@ -79,7 +84,6 @@ class ParticleSystem:
             # Optional: raise error or log
             # print(f"Particle with id {particle_id} not found or already inactive.")
             pass
-
 
     def update(self, dt: float):
         """
@@ -103,7 +107,7 @@ class ParticleSystem:
             if not self.active[i]:
                 continue
             self.positions_y[i] += self.velocities_y[i] * dt
-            
+
     def get_particle_data(self, particle_id: int) -> dict | None:
         """
         Retrieves the data for a specific active particle.
@@ -125,14 +129,17 @@ class ParticleSystem:
         particles_data = []
         for i in range(self.max_particles):
             if self.active[i]:
-                particles_data.append({
-                    "id": i,
-                    "pos_x": self.positions_x[i],
-                    "pos_y": self.positions_y[i],
-                    "vel_x": self.velocities_x[i],
-                    "vel_y": self.velocities_y[i],
-                })
+                particles_data.append(
+                    {
+                        "id": i,
+                        "pos_x": self.positions_x[i],
+                        "pos_y": self.positions_y[i],
+                        "vel_x": self.velocities_x[i],
+                        "vel_y": self.velocities_y[i],
+                    }
+                )
         return particles_data
+
 
 # For conceptual comparison: Array of Structures (AoS)
 # This would typically have worse cache performance for component-wise updates.
@@ -143,6 +150,7 @@ class ParticleAoS:
         self.vel_x = vel_x
         self.vel_y = vel_y
 
+
 class ParticleSystemAoS:
     def __init__(self, max_particles):
         self.particles: list[ParticleAoS | None] = [None] * max_particles
@@ -152,9 +160,9 @@ class ParticleSystemAoS:
         for i in range(len(self.particles)):
             if self.particles[i] is None:
                 self.particles[i] = ParticleAoS(pos_x, pos_y, vel_x, vel_y)
-                self.num_active_particles +=1
+                self.num_active_particles += 1
                 return i
-        return None # System full
+        return None  # System full
 
     def update(self, dt):
         # When updating, e.g., all x positions, memory access is scattered
@@ -162,7 +170,7 @@ class ParticleSystemAoS:
         for p_obj in self.particles:
             if p_obj:
                 p_obj.pos_x += p_obj.vel_x * dt
-        
+
         for p_obj in self.particles:
             if p_obj:
                 p_obj.pos_y += p_obj.vel_y * dt

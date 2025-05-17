@@ -11,12 +11,14 @@ needed, it is set back to the “not in use” state by resetting it.
 This way, objects can be acquired and released without needing to allocate
 memory or other resources repeatedly.
 """
+
 from typing import TypeVar, Generic, Type, List, Optional, Dict, Any
 
 # Define a TypeVar for the PooledObject subclass.
 # 'bound=PooledObject' ensures that T_PooledObject is a subclass of PooledObject.
 # However, to define PooledObject first, we use a forward reference string.
-T_PooledObject = TypeVar('T_PooledObject', bound='PooledObject')
+T_PooledObject = TypeVar("T_PooledObject", bound="PooledObject")
+
 
 class PooledObject:
     """
@@ -26,6 +28,7 @@ class PooledObject:
     Subclasses should override the `reset` method to clear their specific state
     and call `super().reset()`.
     """
+
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """
         Initializes the PooledObject.
@@ -61,6 +64,7 @@ class PooledObject:
         # self.custom_data = None
         # self.position = (0,0)
 
+
 class ObjectPool(Generic[T_PooledObject]):
     """
     Manages a collection of reusable PooledObject instances.
@@ -69,11 +73,14 @@ class ObjectPool(Generic[T_PooledObject]):
     to be acquired and released, aiming to reduce the overhead of
     creating and destroying objects frequently.
     """
-    def __init__(self,
-                 object_class_to_pool: Type[T_PooledObject],
-                 pool_size: int,
-                 *object_init_args: Any,
-                 **object_init_kwargs: Any) -> None:
+
+    def __init__(
+        self,
+        object_class_to_pool: Type[T_PooledObject],
+        pool_size: int,
+        *object_init_args: Any,
+        **object_init_kwargs: Any,
+    ) -> None:
         """
         Initializes the object pool.
 
@@ -142,12 +149,10 @@ class ObjectPool(Generic[T_PooledObject]):
             if not obj.is_in_use():
                 # Optionally, handle or log releasing an already available object
                 # print(f"Warning: Object {obj} was already available in the pool.")
-                pass # Or raise an error if this is an invalid state
+                pass  # Or raise an error if this is an invalid state
             obj.reset()  # Reset state and mark as not in use
         else:
-            raise ValueError(
-                "Object being released does not belong to this pool."
-            )
+            raise ValueError("Object being released does not belong to this pool.")
 
     def get_pool_info(self) -> Dict[str, int]:
         """
@@ -163,5 +168,5 @@ class ObjectPool(Generic[T_PooledObject]):
         return {
             "total_objects": total_objects,
             "used_objects": used_objects,
-            "available_objects": available_objects
+            "available_objects": available_objects,
         }

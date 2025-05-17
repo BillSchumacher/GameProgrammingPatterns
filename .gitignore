@@ -25,6 +25,7 @@ build/
 dist/
 *.egg-info/
 *.egg
+*.exe # Add .exe for C executables
 
 # Test artifacts
 .pytest_cache/

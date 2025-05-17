@@ -9,50 +9,54 @@ from .update_method import UpdateMethodManager, Entity
 from .bytecode import Instruction, VirtualMachine
 from .service_locator import ServiceLocator, NullService, get_service, register_service
 from .command import Command
-from .component import Component, GameObject
-from .data_locality import GameEntity, PositionComponent, RenderComponent, AIComponent, PhysicsComponent, ComponentManager
-from .dirty_flag import DirtyFlag, Transform
+from .component import Component, Entity as GameObject
+from .data_locality import ParticleSystem
+from .dirty_flag import GameObject as DirtyFlagGameObject
 from .event_queue import EventQueue, Event
 from .flyweight import Flyweight, FlyweightFactory
 from .game_loop import GameLoop
 from .interpreter import (
-    Expression, TerminalExpression, NonTerminalExpression,
-    Number, Add, Subtract, Multiply, Divide, Parser
+    Expression,
+    NumberExpression as Number,
+    AddExpression as Add,
+    SubtractExpression as Subtract,
+    MultiplyExpression as Multiply,
+    DivideExpression as Divide
 )
-from .object_pool import ObjectPool, Reusable
-from .pda import PDA, State as PDAState, Transition as PDATransition
-from .spatial_partition import SpatialPartition, GameObject as SPGameObject
-from .type_object import Breed, Monster
+from .object_pool import ObjectPool, PooledObject 
+from .pda import PushdownAutomata as PDA, PDAState
+from .spatial_partition import GridPartition as SpatialPartition, SpatialObject
+from .type_object import TypeObject, TypedObject
 
 __all__ = [
     "Command",
     "Component", "GameObject",
-    "GameEntity", "PositionComponent", "RenderComponent", "AIComponent", "PhysicsComponent", "ComponentManager",
-    "DirtyFlag", "Transform",
+    "ParticleSystem",
+    "DirtyFlagGameObject",
     "EventQueue", "Event",
     "Flyweight", "FlyweightFactory",
     "StateMachine",
     "State",
     "HStateMachine",
     "GameLoop",
-    "Expression", "TerminalExpression", "NonTerminalExpression",
-    "Number", "Add", "Subtract", "Multiply", "Divide", "Parser",
-    "ObjectPool", "Reusable",
+    "Expression",
+    "Number", "Add", "Subtract", "Multiply", "Divide",
+    "ObjectPool", "PooledObject", 
     "ObserverMixin",
     "Subject",
-    "PDA", "PDAState", "PDATransition",
+    "PDA", "PDAState", 
     "Prototype",
     "ServiceLocator",
     "NullService",
     "get_service",
     "register_service",
     "Singleton",
-    "SpatialPartition", "SPGameObject",
+    "SpatialPartition", "SpatialObject", 
     "CSM",
     "StateMachineInterface",
     "Buffer",
     "DoubleBuffer",
-    "Breed", "Monster",
+    "TypeObject", "TypedObject", 
     "UpdateMethodManager",
     "Entity",
     "Instruction",

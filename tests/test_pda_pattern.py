@@ -2,6 +2,7 @@ import unittest
 from gamepp.patterns.pda import PushdownAutomata, PDAState
 from typing import Any, List
 
+
 class MockState(PDAState):
     def __init__(self, name: str):
         self.name = name
@@ -32,8 +33,8 @@ class MockState(PDAState):
     def __repr__(self):
         return f"<MockState {self.name}>"
 
-class TestPushdownAutomata(unittest.TestCase):
 
+class TestPushdownAutomata(unittest.TestCase):
     def test_initialization_empty(self):
         pda = PushdownAutomata()
         self.assertIsNone(pda.current_state)
@@ -51,7 +52,7 @@ class TestPushdownAutomata(unittest.TestCase):
     def test_push_state(self):
         pda = PushdownAutomata()
         state1 = MockState("State1")
-        
+
         pda.push_state(state1)
         self.assertIs(pda.current_state, state1)
         self.assertTrue(state1.entered)
@@ -66,25 +67,25 @@ class TestPushdownAutomata(unittest.TestCase):
         self.assertFalse(state2.exited)
         self.assertEqual(pda.stack_depth, 2)
         self.assertIs(state2.pda_on_enter, pda)
-        
+
         self.assertFalse(state1.exited)
 
     def test_pop_state(self):
         state1 = MockState("State1")
         state2 = MockState("State2")
         pda = PushdownAutomata(state1)
-        pda.push_state(state2) 
+        pda.push_state(state2)
 
         self.assertEqual(pda.stack_depth, 2)
-        
+
         popped_state = pda.pop_state()
         self.assertIs(popped_state, state2)
         self.assertTrue(state2.exited)
         self.assertIs(state2.pda_on_exit, pda)
         self.assertIs(pda.current_state, state1)
         self.assertEqual(pda.stack_depth, 1)
-        
-        self.assertFalse(state1.exited) 
+
+        self.assertFalse(state1.exited)
         self.assertTrue(state1.entered)
 
         popped_state = pda.pop_state()
@@ -103,7 +104,7 @@ class TestPushdownAutomata(unittest.TestCase):
     def test_handle_input_current_state(self):
         state1 = MockState("State1")
         pda = PushdownAutomata(state1)
-        
+
         pda.handle_input("test_input_1")
         self.assertEqual(state1.inputs_handled, ["test_input_1"])
         self.assertIs(state1.pda_on_handle_input, pda)
@@ -111,7 +112,7 @@ class TestPushdownAutomata(unittest.TestCase):
         state2 = MockState("State2")
         pda.push_state(state2)
         pda.handle_input("test_input_2")
-        self.assertEqual(state1.inputs_handled, ["test_input_1"]) 
+        self.assertEqual(state1.inputs_handled, ["test_input_1"])
         self.assertEqual(state2.inputs_handled, ["test_input_2"])
         self.assertIs(state2.pda_on_handle_input, pda)
 
@@ -125,10 +126,10 @@ class TestPushdownAutomata(unittest.TestCase):
     def test_state_popping_itself(self):
         state_a = MockState("A")
         pda = PushdownAutomata(state_a)
-        
+
         self.assertIs(pda.current_state, state_a)
-        pda.handle_input("pop_A") 
-        
+        pda.handle_input("pop_A")
+
         self.assertIsNone(pda.current_state)
         self.assertTrue(state_a.exited)
         self.assertEqual(state_a.inputs_handled, ["pop_A"])
@@ -137,16 +138,18 @@ class TestPushdownAutomata(unittest.TestCase):
     def test_state_pushing_new_state(self):
         state_a = MockState("A")
         pda = PushdownAutomata(state_a)
-        
+
         self.assertIs(pda.current_state, state_a)
         pda.handle_input({"action": "push", "state_name": "B"})
-        
+
         self.assertEqual(pda.stack_depth, 2)
         self.assertIsInstance(pda.current_state, MockState)
         self.assertEqual(pda.current_state.name, "B")
         self.assertTrue(pda.current_state.entered)
-        self.assertFalse(state_a.exited) 
-        self.assertEqual(state_a.inputs_handled, [{"action": "push", "state_name": "B"}])
+        self.assertFalse(state_a.exited)
+        self.assertEqual(
+            state_a.inputs_handled, [{"action": "push", "state_name": "B"}]
+        )
 
         state_b = pda.current_state
         self.assertIs(state_b.pda_on_enter, pda)
@@ -188,5 +191,6 @@ class TestPushdownAutomata(unittest.TestCase):
         self.assertEqual(pda.stack_depth, 0)
         self.assertTrue(state_a.exited)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

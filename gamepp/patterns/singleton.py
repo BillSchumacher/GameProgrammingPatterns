@@ -8,6 +8,7 @@ class SingletonMeta(type):
     A metaclass for creating Singleton classes.
     Ensures that only one instance of a class is created.
     """
+
     _instances = {}
 
     def __call__(cls, *args, **kwargs):
@@ -40,6 +41,7 @@ class Singleton(metaclass=SingletonMeta):
     # print(logger1 is logger2)  # True
     # logger1.log("This is a test.")
     """
+
     def __init__(self, *args, **kwargs):
         # The actual initialization logic should be in the subclass.
         # This __init__ in the base Singleton class is to allow subclasses to have their own __init__.

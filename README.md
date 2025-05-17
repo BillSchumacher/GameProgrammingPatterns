@@ -343,6 +343,93 @@ The `gamepp` package includes implementations of the following design patterns:
     # Rendering frame 3
     # Game loop stopped.
     ```
+
+*   **Game Loop (C Extension - `gameloop_ext`):** A high-performance version of the game loop implemented as a CPython extension. It offers a similar API to the Python version but runs the core loop logic in C for better efficiency, while still allowing Python functions to be used as handlers.
+
+    ```python
+    # Assuming gameloop_ext.cpXXX-win_amd64.pyd is in your PYTHONPATH
+    # or in the same directory
+    try:
+        from gamepp.patterns import gameloop_ext
+        print("Successfully imported gameloop_ext")
+    except ImportError as e:
+        print(f"Error importing gameloop_ext: {e}")
+        print("Make sure the extension is built and accessible.")
+        gameloop_ext = None
+
+    if gameloop_ext:
+        import time
+
+        loop_data = {
+            "frames_processed": 0,
+            "max_frames": 5,
+            "input_calls": 0,
+            "update_calls": 0,
+            "render_calls": 0
+        }
+
+        # Create a GameLoop instance from the C extension
+        # You can specify a fixed time step, e.g., for 30 FPS: 1.0/30.0
+        game_loop_ext_instance = gameloop_ext.GameLoop(fixed_time_step=1.0/10.0) # 10 FPS for demo
+
+        def my_process_input():
+            loop_data["input_calls"] += 1
+            print(f"[Ext] Input: frame {loop_data['frames_processed']}")
+            if loop_data["frames_processed"] >= loop_data["max_frames"]:
+                print("[Ext] Max frames reached, stopping loop from input handler.")
+                game_loop_ext_instance.stop()
+
+        def my_update(dt):
+            loop_data["update_calls"] += 1
+            print(f"[Ext] Update: dt={dt:.4f}s, frame {loop_data['frames_processed']}")
+            # Game logic would go here
+            loop_data["frames_processed"] += 1 # Increment after update
+
+        def my_render(alpha):
+            loop_data["render_calls"] += 1
+            print(f"[Ext] Render: alpha={alpha:.4f}, frame {loop_data['frames_processed']-1}")
+            # Rendering logic would go here
+
+        # Set the Python callbacks
+        game_loop_ext_instance.set_process_input_handler(my_process_input)
+        game_loop_ext_instance.set_update_handler(my_update)
+        game_loop_ext_instance.set_render_handler(my_render)
+
+        print("Starting C extension game loop...")
+        start_time = time.time()
+        game_loop_ext_instance.start() # This is a blocking call
+        end_time = time.time()
+        print("C extension game loop stopped.")
+        print(f"Loop ran for {end_time - start_time:.2f} seconds.")
+        print(f"Callbacks: Input={loop_data['input_calls']}, Update={loop_data['update_calls']}, Render={loop_data['render_calls']}")
+        print(f"Frames processed (by update): {loop_data['frames_processed']-1}") # -1 because it's incremented before stop check
+
+    # Expected Output (will vary slightly due to timing, ~5 frames at 10 FPS):
+    # Successfully imported gameloop_ext
+    # Starting C extension game loop...
+    # [Ext] Input: frame 0
+    # [Ext] Update: dt=0.1000s, frame 0
+    # [Ext] Render: alpha=0.XXXX, frame 0 
+    # [Ext] Input: frame 1
+    # [Ext] Update: dt=0.1000s, frame 1
+    # [Ext] Render: alpha=0.XXXX, frame 1
+    # [Ext] Input: frame 2
+    # [Ext] Update: dt=0.1000s, frame 2
+    # [Ext] Render: alpha=0.XXXX, frame 2
+    # [Ext] Input: frame 3
+    # [Ext] Update: dt=0.1000s, frame 3
+    # [Ext] Render: alpha=0.XXXX, frame 3
+    # [Ext] Input: frame 4
+    # [Ext] Update: dt=0.1000s, frame 4
+    # [Ext] Render: alpha=0.XXXX, frame 4
+    # [Ext] Input: frame 5
+    # [Ext] Max frames reached, stopping loop from input handler.
+    # C extension game loop stopped.
+    # Loop ran for 0.5X seconds.
+    # Callbacks: Input=6, Update=5, Render=5 (Input called one more time to stop)
+    # Frames processed (by update): 5
+    ```
+
 *   **Hierarchical State Machine (HSM):** Extends FSMs by allowing states to be nested, creating a hierarchy of behaviors.
     ```python
     from gamepp.patterns.hsm import HState, HStateMachine

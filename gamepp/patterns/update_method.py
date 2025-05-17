@@ -1,9 +1,11 @@
 from typing import List, Protocol
 
+
 class Entity(Protocol):
     """
     Represents an object in the game that has behavior to be updated each frame.
     """
+
     def update(self, dt: float) -> None:
         """
         Processes one frame of behavior for the entity.
@@ -13,10 +15,12 @@ class Entity(Protocol):
         """
         ...
 
+
 class UpdateMethodManager:
     """
     Manages a collection of entities and updates them.
     """
+
     def __init__(self):
         self._entities: List[Entity] = []
 

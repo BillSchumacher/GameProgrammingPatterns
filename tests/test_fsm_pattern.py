@@ -5,9 +5,9 @@ from gamepp.patterns.fsm import State, StateMachine
 
 
 class IdleState(State):
-    def __init__(self, context: 'StateMachine', id_prefix="Idle"):
+    def __init__(self, context: "StateMachine", id_prefix="Idle"):
         super().__init__(context)
-        self.id_prefix = id_prefix # Example constructor arg
+        self.id_prefix = id_prefix  # Example constructor arg
         self.entered_with_reason = None
         self.exit_called = False
         # print(f"{self}: Initialized with id_prefix '{self.id_prefix}'.") # For debug
@@ -19,7 +19,7 @@ class IdleState(State):
     def update(self, event: Any = None):
         if event == "walk_command":
             # print(f"{self}: Received walk_command.")
-            self.context.change_state(WalkingState) 
+            self.context.change_state(WalkingState)
         elif event == "jump_command":
             # print(f"{self}: Received jump_command.")
             self.context.change_state(JumpingState)
@@ -28,10 +28,11 @@ class IdleState(State):
         self.exit_called = True
         # print(f"{self}: No longer idling.")
 
+
 class WalkingState(State):
-    def __init__(self, context: 'StateMachine', initial_speed: int = 5):
+    def __init__(self, context: "StateMachine", initial_speed: int = 5):
         super().__init__(context)
-        self.base_speed = initial_speed 
+        self.base_speed = initial_speed
         self.current_speed = initial_speed
         self.steps_taken = 0
         self.entered_with_speed = None
@@ -41,13 +42,15 @@ class WalkingState(State):
     def enter(self, **kwargs):
         self.entered_with_speed = kwargs.get("speed", self.base_speed)
         self.current_speed = self.entered_with_speed
-        self.steps_taken = 0 
+        self.steps_taken = 0
         # print(f"{self}: Player started walking at speed {self.current_speed}.")
 
     def update(self, event: Any = None):
         if event == "stop_command":
             # print(f"{self}: Received stop_command.")
-            self.context.change_state(IdleState, enter_kwargs={'reason': "stopped walking"})
+            self.context.change_state(
+                IdleState, enter_kwargs={"reason": "stopped walking"}
+            )
         elif event == "jump_command":
             # print(f"{self}: Received jump_command while walking.")
             self.context.change_state(JumpingState)
@@ -58,8 +61,9 @@ class WalkingState(State):
         self.exit_called = True
         # print(f"{self}: Player stopped walking after {self.steps_taken} steps.")
 
+
 class JumpingState(State):
-    def __init__(self, context: 'StateMachine', initial_height: int = 10):
+    def __init__(self, context: "StateMachine", initial_height: int = 10):
         super().__init__(context)
         self.base_jump_height = initial_height
         self.current_jump_height = initial_height
@@ -76,39 +80,45 @@ class JumpingState(State):
 
     def update(self, event: Any = None):
         self.air_time += 1
-        if self.air_time >= self.current_jump_height / 2: 
+        if self.air_time >= self.current_jump_height / 2:
             # print(f"{self}: Player is landing.")
-            self.context.change_state(IdleState, enter_kwargs={'reason': "landed from jump"})
+            self.context.change_state(
+                IdleState, enter_kwargs={"reason": "landed from jump"}
+            )
 
     def exit(self):
         self.exit_called = True
         # print(f"{self}: Player landed after {self.air_time} air time units.")
 
-class TestFiniteStateMachine(unittest.TestCase):
 
+class TestFiniteStateMachine(unittest.TestCase):
     def test_initial_state_and_entry_params(self):
-        fsm = StateMachine(IdleState, enter_kwargs={'reason': "Game Start"})
+        fsm = StateMachine(IdleState, enter_kwargs={"reason": "Game Start"})
         self.assertIsInstance(fsm.current_state, IdleState)
         self.assertEqual(fsm.current_state.entered_with_reason, "Game Start")
 
     def test_event_transitions(self):
-        fsm = StateMachine(IdleState, enter_kwargs={'reason': "Initial"})
+        fsm = StateMachine(IdleState, enter_kwargs={"reason": "Initial"})
         idle_state_instance = fsm.current_state
 
         fsm.update("walk_command")
         self.assertIsInstance(fsm.current_state, WalkingState)
         self.assertTrue(idle_state_instance.exit_called)
-        self.assertEqual(fsm.current_state.entered_with_speed, 5) # Default initial_speed and enter speed
+        self.assertEqual(
+            fsm.current_state.entered_with_speed, 5
+        )  # Default initial_speed and enter speed
 
         walking_state_instance = fsm.current_state
         fsm.update("jump_command")
         self.assertIsInstance(fsm.current_state, JumpingState)
         self.assertTrue(walking_state_instance.exit_called)
-        self.assertEqual(fsm.current_state.entered_with_height, 10) # Default initial_height and enter height
+        self.assertEqual(
+            fsm.current_state.entered_with_height, 10
+        )  # Default initial_height and enter height
 
         jumping_state_instance = fsm.current_state
         # Simulate updates until landing
-        for _ in range(5): # Default height 10, lands when air_time >= 5
+        for _ in range(5):  # Default height 10, lands when air_time >= 5
             fsm.update()
             if isinstance(fsm.current_state, IdleState):
                 break
@@ -121,36 +131,48 @@ class TestFiniteStateMachine(unittest.TestCase):
         idle_state_instance = fsm.current_state
 
         # Change to WalkingState, providing kwargs for its constructor and enter method
-        fsm.change_state(WalkingState, 
-                         constructor_kwargs={'initial_speed': 7}, 
-                         enter_kwargs={'speed': 10})
-        
+        fsm.change_state(
+            WalkingState,
+            constructor_kwargs={"initial_speed": 7},
+            enter_kwargs={"speed": 10},
+        )
+
         self.assertIsInstance(fsm.current_state, WalkingState)
         self.assertTrue(idle_state_instance.exit_called)
-        self.assertEqual(fsm.current_state.base_speed, 7) # From constructor_kwargs
-        self.assertEqual(fsm.current_state.current_speed, 10) # From enter_kwargs
+        self.assertEqual(fsm.current_state.base_speed, 7)  # From constructor_kwargs
+        self.assertEqual(fsm.current_state.current_speed, 10)  # From enter_kwargs
         self.assertEqual(fsm.current_state.entered_with_speed, 10)
 
         # Change back to Idle, then to WalkingState again to test caching
         # The constructor_kwargs for WalkingState should be ignored this time.
         walking_state_instance_first = fsm.current_state
-        fsm.change_state(IdleState, enter_kwargs={'reason': "Temp Idle"})
+        fsm.change_state(IdleState, enter_kwargs={"reason": "Temp Idle"})
         idle_state_instance_2 = fsm.current_state
 
-        fsm.change_state(WalkingState, 
-                         constructor_kwargs={'initial_speed': 99}, # Should be ignored
-                         enter_kwargs={'speed': 12})
+        fsm.change_state(
+            WalkingState,
+            constructor_kwargs={"initial_speed": 99},  # Should be ignored
+            enter_kwargs={"speed": 12},
+        )
         self.assertIsInstance(fsm.current_state, WalkingState)
         self.assertTrue(idle_state_instance_2.exit_called)
-        self.assertIs(fsm.current_state, walking_state_instance_first, "Should reuse cached WalkingState instance")
-        self.assertEqual(fsm.current_state.base_speed, 7) # Should retain original base_speed
-        self.assertEqual(fsm.current_state.current_speed, 12) # New enter speed
+        self.assertIs(
+            fsm.current_state,
+            walking_state_instance_first,
+            "Should reuse cached WalkingState instance",
+        )
+        self.assertEqual(
+            fsm.current_state.base_speed, 7
+        )  # Should retain original base_speed
+        self.assertEqual(fsm.current_state.current_speed, 12)  # New enter speed
         self.assertEqual(fsm.current_state.entered_with_speed, 12)
 
     def test_fsm_initialization_with_state_constructor_and_enter_kwargs(self):
-        fsm = StateMachine(WalkingState, 
-                           constructor_kwargs={'initial_speed': 3}, 
-                           enter_kwargs={'speed': 4})
+        fsm = StateMachine(
+            WalkingState,
+            constructor_kwargs={"initial_speed": 3},
+            enter_kwargs={"speed": 4},
+        )
         self.assertIsInstance(fsm.current_state, WalkingState)
         self.assertEqual(fsm.current_state.base_speed, 3)
         self.assertEqual(fsm.current_state.current_speed, 4)
@@ -163,10 +185,11 @@ class TestFiniteStateMachine(unittest.TestCase):
         self.assertEqual(fsm.current_state.entered_with_reason, "stopped walking")
 
     def test_state_str_representation(self):
-        idle = IdleState(MagicMock()) # Pass a mock context
+        idle = IdleState(MagicMock())  # Pass a mock context
         self.assertEqual(str(idle), "IdleState")
         walking = WalkingState(MagicMock())
         self.assertEqual(str(walking), "WalkingState")
+
 
 if __name__ == "__main__":
     unittest.main()

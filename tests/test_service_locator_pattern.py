@@ -8,6 +8,7 @@ from gamepp.patterns.service_locator import (
 
 # Example Services for Testing
 
+
 class SingletonService:
     _instance = None
 
@@ -24,6 +25,7 @@ class SingletonService:
     def set_data(self, value):
         self.data = value
 
+
 class StaticUtilService:
     @staticmethod
     def perform_action(input_val):
@@ -33,10 +35,12 @@ class StaticUtilService:
     def get_info(cls):
         return "Information from StaticUtilService class"
 
+
 # Concrete services (can be instances or classes with static methods)
 class ConcreteServiceA:
     def execute(self):
         return "Executing ConcreteServiceA"
+
 
 class ConcreteServiceB:
     def execute(self):
@@ -76,13 +80,20 @@ class TestServiceLocator(unittest.TestCase):
 
         retrieved_util_class = ServiceLocator.get_service("MyStaticUtil")
         self.assertIs(retrieved_util_class, StaticUtilService)
-        self.assertEqual(retrieved_util_class.perform_action("test"), "Static action performed with test")
-        self.assertEqual(retrieved_util_class.get_info(), "Information from StaticUtilService class")
+        self.assertEqual(
+            retrieved_util_class.perform_action("test"),
+            "Static action performed with test",
+        )
+        self.assertEqual(
+            retrieved_util_class.get_info(), "Information from StaticUtilService class"
+        )
 
     def test_get_unregistered_service(self):
         with self.assertRaises(ValueError) as context:
             ServiceLocator.get_service("NonExistentService")
-        self.assertTrue("Service NonExistentService not found." in str(context.exception))
+        self.assertTrue(
+            "Service NonExistentService not found." in str(context.exception)
+        )
 
     def test_multiple_services(self):
         service_a = ConcreteServiceA()
@@ -93,17 +104,31 @@ class TestServiceLocator(unittest.TestCase):
         ServiceLocator.register_service("SingletonS", singleton_s)
         ServiceLocator.register_service("StaticUtil", StaticUtilService)
 
-        self.assertEqual(ServiceLocator.get_service("ServiceA").execute(), "Executing ConcreteServiceA")
-        self.assertEqual(ServiceLocator.get_service("ServiceB").execute(), "Executing ConcreteServiceB")
-        self.assertEqual(ServiceLocator.get_service("SingletonS").get_data(), "Singleton Data")
-        self.assertEqual(ServiceLocator.get_service("StaticUtil").perform_action("multi"), "Static action performed with multi")
+        self.assertEqual(
+            ServiceLocator.get_service("ServiceA").execute(),
+            "Executing ConcreteServiceA",
+        )
+        self.assertEqual(
+            ServiceLocator.get_service("ServiceB").execute(),
+            "Executing ConcreteServiceB",
+        )
+        self.assertEqual(
+            ServiceLocator.get_service("SingletonS").get_data(), "Singleton Data"
+        )
+        self.assertEqual(
+            ServiceLocator.get_service("StaticUtil").perform_action("multi"),
+            "Static action performed with multi",
+        )
 
     def test_replace_service(self):
         service_a1 = ConcreteServiceA()
         ServiceLocator.register_service("ServiceA", service_a1)
-        self.assertEqual(ServiceLocator.get_service("ServiceA").execute(), "Executing ConcreteServiceA")
+        self.assertEqual(
+            ServiceLocator.get_service("ServiceA").execute(),
+            "Executing ConcreteServiceA",
+        )
 
-        service_a2 = ConcreteServiceA() # A different instance
+        service_a2 = ConcreteServiceA()  # A different instance
         ServiceLocator.register_service("ServiceA", service_a2)
         retrieved_service = ServiceLocator.get_service("ServiceA")
         self.assertIs(retrieved_service, service_a2)
@@ -112,7 +137,7 @@ class TestServiceLocator(unittest.TestCase):
     def test_null_service_pattern(self):
         null_service = NullService()
         ServiceLocator.register_service("OptionalService", null_service)
-        
+
         retrieved_service = ServiceLocator.get_service("OptionalService")
         self.assertEqual(retrieved_service.execute(), "Executing NullService (default)")
 
@@ -122,9 +147,9 @@ class TestServiceLocator(unittest.TestCase):
 
     def test_global_access_functions(self):
         service_b_instance = ConcreteServiceB()
-        register_service("GlobalServiceB", service_b_instance) # Using global helper
+        register_service("GlobalServiceB", service_b_instance)  # Using global helper
 
-        retrieved_service = get_service("GlobalServiceB") # Using global helper
+        retrieved_service = get_service("GlobalServiceB")  # Using global helper
         self.assertIs(retrieved_service, service_b_instance)
         self.assertEqual(retrieved_service.execute(), "Executing ConcreteServiceB")
 
@@ -132,7 +157,10 @@ class TestServiceLocator(unittest.TestCase):
         register_service("GlobalStaticUtil", StaticUtilService)
         retrieved_static_class = get_service("GlobalStaticUtil")
         self.assertIs(retrieved_static_class, StaticUtilService)
-        self.assertEqual(retrieved_static_class.get_info(), "Information from StaticUtilService class")
+        self.assertEqual(
+            retrieved_static_class.get_info(),
+            "Information from StaticUtilService class",
+        )
 
     def test_clear_services(self):
         service_a = ConcreteServiceA()
@@ -143,5 +171,6 @@ class TestServiceLocator(unittest.TestCase):
         with self.assertRaises(ValueError):
             ServiceLocator.get_service("ServiceA")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

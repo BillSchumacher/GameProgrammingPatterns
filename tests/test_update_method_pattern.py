@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import MagicMock
 
 from gamepp.patterns.update_method import UpdateMethodManager, Entity
-from gamepp.patterns.game_loop import GameLoop # For integration example/test
+from gamepp.patterns.game_loop import GameLoop  # For integration example/test
 
 
 class ConcreteEntity:
@@ -21,7 +21,6 @@ class ConcreteEntity:
 
 
 class TestUpdateMethod(unittest.TestCase):
-
     def setUp(self):
         self.manager = UpdateMethodManager()
         self.entity1 = ConcreteEntity("Entity1")
@@ -91,55 +90,74 @@ class TestUpdateMethod(unittest.TestCase):
             self.fail(f"update_all crashed with no entities: {e}")
 
     def test_integration_with_game_loop(self):
-        game_loop = GameLoop(fixed_time_step=1/60)
+        game_loop = GameLoop(fixed_time_step=1 / 60)
         update_manager = UpdateMethodManager()
 
-        entity_a = ConcreteEntity("AgentA_Imported") 
+        entity_a = ConcreteEntity("AgentA_Imported")
         entity_b = ConcreteEntity("AgentB_Imported")
         update_manager.add_entity(entity_a)
         update_manager.add_entity(entity_b)
 
         updates_to_run = 3
-        actual_updates_done_in_handler = 0 
+        actual_updates_done_in_handler = 0
 
         def update_handler_wrapper(dt: float):
             nonlocal actual_updates_done_in_handler
-            update_manager.update_all(dt) 
+            update_manager.update_all(dt)
             actual_updates_done_in_handler += 1
             if actual_updates_done_in_handler >= updates_to_run:
                 game_loop.stop()
 
         game_loop.set_update_handler(update_handler_wrapper)
-        
+
         max_outer_loop_iterations = updates_to_run * 5
         outer_loop_iterations = 0
+
         def safe_process_input_handler():
             nonlocal outer_loop_iterations
             outer_loop_iterations += 1
             if outer_loop_iterations > max_outer_loop_iterations:
                 if game_loop.is_running:
                     game_loop.stop()
-        
+
         game_loop.set_process_input_handler(safe_process_input_handler)
         game_loop.set_render_handler(lambda alpha: None)
 
         game_loop.start()
 
         self.assertFalse(game_loop.is_running, "Game loop should have stopped.")
-        
-        self.assertEqual(actual_updates_done_in_handler, updates_to_run, 
-                         f"Update handler wrapper should be called {updates_to_run} times, but was called {actual_updates_done_in_handler} times.")
-        
-        self.assertEqual(entity_a.updates_called, updates_to_run,
-                         f"Entity A should be updated {updates_to_run} times, got {entity_a.updates_called}.")
-        self.assertEqual(entity_b.updates_called, updates_to_run,
-                         f"Entity B should be updated {updates_to_run} times, got {entity_b.updates_called}.")
-        
-        expected_total_time = updates_to_run * game_loop._fixed_time_step
-        self.assertAlmostEqual(entity_a.total_time_elapsed, expected_total_time, places=5,
-                               msg=f"Entity A total time elapsed is incorrect. Expected ~{expected_total_time:.5f}, got {entity_a.total_time_elapsed:.5f}.")
-        self.assertAlmostEqual(entity_b.total_time_elapsed, expected_total_time, places=5,
-                               msg=f"Entity B total time elapsed is incorrect. Expected ~{expected_total_time:.5f}, got {entity_b.total_time_elapsed:.5f}.")
 
-if __name__ == '__main__':
+        self.assertEqual(
+            actual_updates_done_in_handler,
+            updates_to_run,
+            f"Update handler wrapper should be called {updates_to_run} times, but was called {actual_updates_done_in_handler} times.",
+        )
+
+        self.assertEqual(
+            entity_a.updates_called,
+            updates_to_run,
+            f"Entity A should be updated {updates_to_run} times, got {entity_a.updates_called}.",
+        )
+        self.assertEqual(
+            entity_b.updates_called,
+            updates_to_run,
+            f"Entity B should be updated {updates_to_run} times, got {entity_b.updates_called}.",
+        )
+
+        expected_total_time = updates_to_run * game_loop._fixed_time_step
+        self.assertAlmostEqual(
+            entity_a.total_time_elapsed,
+            expected_total_time,
+            places=5,
+            msg=f"Entity A total time elapsed is incorrect. Expected ~{expected_total_time:.5f}, got {entity_a.total_time_elapsed:.5f}.",
+        )
+        self.assertAlmostEqual(
+            entity_b.total_time_elapsed,
+            expected_total_time,
+            places=5,
+            msg=f"Entity B total time elapsed is incorrect. Expected ~{expected_total_time:.5f}, got {entity_b.total_time_elapsed:.5f}.",
+        )
+
+
+if __name__ == "__main__":
     unittest.main()

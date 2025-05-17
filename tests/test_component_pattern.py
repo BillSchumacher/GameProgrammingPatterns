@@ -1,9 +1,17 @@
 """
 Unit tests for the Component pattern.
 """
+
 import unittest
 from unittest import mock
-from gamepp.patterns.component import Entity, Component, PositionComponent, HealthComponent, InputComponent
+from gamepp.patterns.component import (
+    Entity,
+    Component,
+    PositionComponent,
+    HealthComponent,
+    InputComponent,
+)
+
 
 class TestComponentPattern(unittest.TestCase):
     """Tests the Component pattern implementation."""
@@ -57,7 +65,7 @@ class TestComponentPattern(unittest.TestCase):
         entity = Entity()
         pos_component = entity.add_component(PositionComponent())
         self.assertTrue(entity.has_component(PositionComponent))
-        
+
         removed = entity.remove_component(PositionComponent)
         self.assertTrue(removed)
         self.assertFalse(entity.has_component(PositionComponent))
@@ -66,7 +74,7 @@ class TestComponentPattern(unittest.TestCase):
         # Test removing a non-existent component
         removed_again = entity.remove_component(PositionComponent)
         self.assertFalse(removed_again)
-        
+
         # Test removing a different non-existent component
         removed_health = entity.remove_component(HealthComponent)
         self.assertFalse(removed_health)
@@ -90,8 +98,8 @@ class TestComponentPattern(unittest.TestCase):
         self.assertEqual(input_comp.last_command, "move_right")
 
         input_comp.process_input(player, "move_left")
-        input_comp.process_input(player, "move_left") # Move left twice
-        self.assertEqual(pos_comp.x, -1) # 1 (from right) - 1 - 1 = -1
+        input_comp.process_input(player, "move_left")  # Move left twice
+        self.assertEqual(pos_comp.x, -1)  # 1 (from right) - 1 - 1 = -1
         self.assertEqual(pos_comp.y, 0)
         self.assertEqual(input_comp.last_command, "move_left")
 
@@ -104,15 +112,18 @@ class TestComponentPattern(unittest.TestCase):
         # Add a component without an update method
         class NoUpdateComponent(Component):
             pass
+
         entity.add_component(NoUpdateComponent())
-        
+
         # Add a component with an update method
         class CustomUpdateComponent(Component):
             def __init__(self):
                 super().__init__()
                 self.updated_with_entity = None
+
             def update(self, entity_arg):
                 self.updated_with_entity = entity_arg
+
         custom_update_comp = entity.add_component(CustomUpdateComponent())
 
         entity.update_components()
@@ -132,7 +143,7 @@ class TestComponentPattern(unittest.TestCase):
         health = HealthComponent(50)
         health.take_damage(20)
         self.assertEqual(health.health, 30)
-        health.take_damage(40) # Health should go to 0, not negative
+        health.take_damage(40)  # Health should go to 0, not negative
         self.assertEqual(health.health, 0)
         health.heal(10)
         self.assertEqual(health.health, 10)
@@ -144,5 +155,6 @@ class TestComponentPattern(unittest.TestCase):
         input_c.process_input(dummy_entity, "jump")
         self.assertEqual(str(input_c), "InputComponent(last_command='jump')")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

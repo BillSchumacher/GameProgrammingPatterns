@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Any
 
+
 class ObserverMixin(ABC):
     """
     Mixin class for Observers. Classes that want to observe subjects
@@ -9,9 +10,12 @@ class ObserverMixin(ABC):
     It's important to note that this mixin does not enforce any cleanup
     or detachment logic. Observers should manage their own lifecycle.
     """
+
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)  # Call super() to cooperate with other bases/mixins
-        self.subjects: List['Subject'] = []
+        super().__init__(
+            *args, **kwargs
+        )  # Call super() to cooperate with other bases/mixins
+        self.subjects: List["Subject"] = []
 
     @abstractmethod
     def on_notify(self, subject: Any, event_data: Any = None) -> None:
@@ -21,8 +25,8 @@ class ObserverMixin(ABC):
         'event_data' is any data passed by the subject regarding the event.
         """
         pass
-    
-    def attached(self, subject: 'Subject') -> None:
+
+    def attached(self, subject: "Subject") -> None:
         """
         Attach this observer to a subject.
         This method is optional and can be overridden by subclasses.
@@ -30,29 +34,31 @@ class ObserverMixin(ABC):
         if subject not in self.subjects:
             self.subjects.append(subject)
 
-    def detached(self, subject: 'Subject') -> None:
+    def detached(self, subject: "Subject") -> None:
         """
         Detach this observer from a subject.
         This method is optional and can be overridden by subclasses.
         """
         if subject in self.subjects:
             self.subjects.remove(subject)
-    
+
 
 class ObserverNode:
     """
     A node in a singly linked list to manage observers.
     """
+
     def __init__(self, observer: ObserverMixin):
         self.observer = observer
-        self.next: 'ObserverNode' = None  # Type hint for the next node
-        self.prev: 'ObserverNode' = None
+        self.next: "ObserverNode" = None  # Type hint for the next node
+        self.prev: "ObserverNode" = None
 
-      
+
 class Subject:
     """
     The Subject class manages a list of observers and notifies them of changes.
     """
+
     def __init__(self):
         self._observers: List[ObserverMixin] = []
 
@@ -86,10 +92,11 @@ class LinkedSubject(Subject):
 
     This avoid the overhead of list operations and allows for
     more efficient insertion and deletion of observers.
-    
+
     This is particularly useful if observers are frequently
     added and removed.
     """
+
     def __init__(self):
         super().__init__()
         self._head: ObserverNode = None
@@ -106,7 +113,7 @@ class LinkedSubject(Subject):
             new_node.prev = self._tail
             self._tail = new_node
         observer.attached(self)
-    
+
     def detach(self, observer: ObserverMixin) -> None:
         """Detach an observer from the subject."""
         current = self._head

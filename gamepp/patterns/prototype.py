@@ -8,6 +8,7 @@ class Prototype(ABC):
     Useful for making spawners or factories that can create new instances
     of a class without knowing the exact class type.
     """
+
     @abstractmethod
     def clone(self):
         """

@@ -1,6 +1,7 @@
 import unittest
 from gamepp.patterns.double_buffer import Buffer, DoubleBuffer
 
+
 class TestBuffer(unittest.TestCase):
     def test_buffer_creation(self):
         buffer = Buffer[int](10, 5)
@@ -38,15 +39,15 @@ class TestBuffer(unittest.TestCase):
         buffer = Buffer[int](2, 2)
         buffer.draw(-1, 0, 1)  # Should be ignored
         buffer.draw(0, -1, 2)  # Should be ignored
-        buffer.draw(2, 0, 3)   # Should be ignored
-        buffer.draw(0, 2, 4)   # Should be ignored
-        self.assertIsNone(buffer.get_pixel(-1,0))
-        self.assertIsNone(buffer.get_pixel(0,-1))
-        self.assertIsNone(buffer.get_pixel(2,0))
-        self.assertIsNone(buffer.get_pixel(0,2))
+        buffer.draw(2, 0, 3)  # Should be ignored
+        buffer.draw(0, 2, 4)  # Should be ignored
+        self.assertIsNone(buffer.get_pixel(-1, 0))
+        self.assertIsNone(buffer.get_pixel(0, -1))
+        self.assertIsNone(buffer.get_pixel(2, 0))
+        self.assertIsNone(buffer.get_pixel(0, 2))
         # Check that valid pixels are not affected
-        buffer.draw(0,0,5)
-        self.assertEqual(buffer.get_pixel(0,0), 5)
+        buffer.draw(0, 0, 5)
+        self.assertEqual(buffer.get_pixel(0, 0), 5)
 
     def test_buffer_get_pixel_out_of_bounds(self):
         buffer = Buffer[int](2, 2)
@@ -54,6 +55,7 @@ class TestBuffer(unittest.TestCase):
         self.assertIsNone(buffer.get_pixel(0, -1))
         self.assertIsNone(buffer.get_pixel(2, 0))
         self.assertIsNone(buffer.get_pixel(0, 2))
+
 
 class TestDoubleBuffer(unittest.TestCase):
     def test_double_buffer_creation(self):
@@ -84,7 +86,7 @@ class TestDoubleBuffer(unittest.TestCase):
         db.draw_buffer.draw(0, 0, "A")
         db.draw_buffer.draw(1, 0, "B")
 
-        self.assertIsNone(db.current_buffer.get_pixel(0,0))
+        self.assertIsNone(db.current_buffer.get_pixel(0, 0))
 
         db.swap_buffers()
 
@@ -92,7 +94,9 @@ class TestDoubleBuffer(unittest.TestCase):
         self.assertIs(db.draw_buffer, initial_front)
         self.assertEqual(db.current_buffer.get_pixel(0, 0), "A")
         self.assertEqual(db.current_buffer.get_pixel(1, 0), "B")
-        self.assertIsNone(db.draw_buffer.get_pixel(0,0)) # Old front buffer should be clean or irrelevant
+        self.assertIsNone(
+            db.draw_buffer.get_pixel(0, 0)
+        )  # Old front buffer should be clean or irrelevant
 
     def test_clear_draw_buffer(self):
         db = DoubleBuffer[int](2, 2)
@@ -107,7 +111,7 @@ class TestDoubleBuffer(unittest.TestCase):
         self.assertEqual(db.draw_buffer.get_pixel(1, 1), 0)
 
         # Ensure current_buffer is not affected
-        self.assertIsNone(db.current_buffer.get_pixel(0,0))
+        self.assertIsNone(db.current_buffer.get_pixel(0, 0))
 
     def test_drawing_and_swapping_flow(self):
         db = DoubleBuffer[str](3, 1)
@@ -126,21 +130,22 @@ class TestDoubleBuffer(unittest.TestCase):
         self.assertEqual(db.current_buffer.get_pixel(1, 0), "F1_1")
 
         # Frame 2: Draw to new back buffer (old front buffer)
-        db.clear_draw_buffer() # Clear the (now) back buffer
+        db.clear_draw_buffer()  # Clear the (now) back buffer
         db.draw_buffer.draw(0, 0, "F2_0")
         db.draw_buffer.draw(2, 0, "F2_2")
 
         # Front buffer still shows Frame 1 content
         self.assertEqual(db.current_buffer.get_pixel(0, 0), "F1_0")
         self.assertEqual(db.current_buffer.get_pixel(1, 0), "F1_1")
-        self.assertIsNone(db.current_buffer.get_pixel(2,0))
+        self.assertIsNone(db.current_buffer.get_pixel(2, 0))
 
         db.swap_buffers()
 
         # After swap, front buffer has Frame 2 content
         self.assertEqual(db.current_buffer.get_pixel(0, 0), "F2_0")
-        self.assertIsNone(db.current_buffer.get_pixel(1, 0)) # This pixel was cleared
+        self.assertIsNone(db.current_buffer.get_pixel(1, 0))  # This pixel was cleared
         self.assertEqual(db.current_buffer.get_pixel(2, 0), "F2_2")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

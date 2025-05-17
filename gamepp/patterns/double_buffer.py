@@ -1,18 +1,21 @@
-\
 from typing import Generic, TypeVar, List, Optional
 
-T = TypeVar('T')
+T = TypeVar("T")
+
 
 class Buffer(Generic[T]):
     """
     Represents a single buffer that stores pixel data or any other 2D grid data.
     """
+
     def __init__(self, width: int, height: int):
         if width <= 0 or height <= 0:
             raise ValueError("Buffer dimensions must be positive.")
         self.width = width
         self.height = height
-        self._pixels: List[List[Optional[T]]] = [[None for _ in range(width)] for _ in range(height)]
+        self._pixels: List[List[Optional[T]]] = [
+            [None for _ in range(width)] for _ in range(height)
+        ]
 
     def clear(self, value: Optional[T] = None) -> None:
         """Clears the buffer, setting all pixels to the given value."""
@@ -42,6 +45,7 @@ class DoubleBuffer(Generic[T]):
     Manages two buffers (a front buffer for reading/display and a back buffer for drawing)
     to prevent tearing and provide smoother updates.
     """
+
     def __init__(self, width: int, height: int):
         if width <= 0 or height <= 0:
             raise ValueError("DoubleBuffer dimensions must be positive.")
@@ -78,11 +82,11 @@ class DoubleBuffer(Generic[T]):
 
     def get_width(self) -> int:
         """Returns the width of the buffers."""
-        return self._front_buffer.width # Both buffers have the same dimensions
+        return self._front_buffer.width  # Both buffers have the same dimensions
 
     def get_height(self) -> int:
         """Returns the height of the buffers."""
-        return self._front_buffer.height # Both buffers have the same dimensions
+        return self._front_buffer.height  # Both buffers have the same dimensions
 
     def __repr__(self) -> str:
         return f"<DoubleBuffer ({self.get_width()}x{self.get_height()})>"

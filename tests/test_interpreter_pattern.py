@@ -1,11 +1,14 @@
 import unittest
 from gamepp.patterns.interpreter import (
-    NumberExpression, AddExpression, SubtractExpression, 
-    MultiplyExpression, DivideExpression
+    NumberExpression,
+    AddExpression,
+    SubtractExpression,
+    MultiplyExpression,
+    DivideExpression,
 )
 
-class TestInterpreterPattern(unittest.TestCase):
 
+class TestInterpreterPattern(unittest.TestCase):
     def test_number_expression(self):
         expression = NumberExpression(10)
         self.assertEqual(expression.interpret(), 10)
@@ -36,18 +39,25 @@ class TestInterpreterPattern(unittest.TestCase):
         # (1 + 2) * (3 - 4)
         # Expected: 3 * -1 = -3
         add_expr = AddExpression(NumberExpression(1), NumberExpression(2))  # 1 + 2 = 3
-        sub_expr = SubtractExpression(NumberExpression(3), NumberExpression(4)) # 3 - 4 = -1
-        complex_expr = MultiplyExpression(add_expr, sub_expr) # 3 * -1 = -3
+        sub_expr = SubtractExpression(
+            NumberExpression(3), NumberExpression(4)
+        )  # 3 - 4 = -1
+        complex_expr = MultiplyExpression(add_expr, sub_expr)  # 3 * -1 = -3
         self.assertEqual(complex_expr.interpret(), -3)
 
     def test_more_complex_expression(self):
         # ( (10 / 2) + (3 * 4) ) - 7
         # Expected: (5 + 12) - 7 = 17 - 7 = 10
-        div_expr = DivideExpression(NumberExpression(10), NumberExpression(2)) # 10 / 2 = 5
-        mul_expr = MultiplyExpression(NumberExpression(3), NumberExpression(4)) # 3 * 4 = 12
-        add_expr = AddExpression(div_expr, mul_expr) # 5 + 12 = 17
-        complex_expr = SubtractExpression(add_expr, NumberExpression(7)) # 17 - 7 = 10
+        div_expr = DivideExpression(
+            NumberExpression(10), NumberExpression(2)
+        )  # 10 / 2 = 5
+        mul_expr = MultiplyExpression(
+            NumberExpression(3), NumberExpression(4)
+        )  # 3 * 4 = 12
+        add_expr = AddExpression(div_expr, mul_expr)  # 5 + 12 = 17
+        complex_expr = SubtractExpression(add_expr, NumberExpression(7))  # 17 - 7 = 10
         self.assertEqual(complex_expr.interpret(), 10)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()
