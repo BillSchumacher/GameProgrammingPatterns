@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "gamepp"
-version = "0.2.0"
+version = "0.3.0"
 authors = [
   { name="Bill Schumacher", email="34168009+BillSchumacher@users.noreply.github.com" },
 ]
@@ -28,7 +28,7 @@ dependencies = [
 
 [tool.poetry]
 name = "gamepp"
-version = "0.2.0"
+version = "0.3.0"
 description = "A Python package for Game Programming Patterns."
 authors = ["Bill Schumacher <34168009+BillSchumacher@users.noreply.github.com>"]
 license = "MIT"
